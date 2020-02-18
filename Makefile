@@ -7,7 +7,7 @@ endif
 
 include $(DEVKITARM)/ds_rules
 
-export TARGET		:=	picodriveds
+export TARGET		:=	PicodriveGBMacro
 export TOPDIR		:=	$(CURDIR)
 
 
