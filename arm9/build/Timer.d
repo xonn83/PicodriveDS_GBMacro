@@ -1,4 +1,5 @@
-Timer.o: C:/Users/GRX/picodriveds-0.1.7/arm9/source/pico/Timer.c \
+Timer.o:  \
+ C:/Users/GRX/picodriveds-0.1.7/PicodriveDS/arm9/source/pico/Timer.c \
   C:/devkitPro/libnds/include/nds.h \
   C:/devkitPro/libnds/include/nds/jtypes.h \
   C:/devkitPro/libnds/include/nds/bios.h \

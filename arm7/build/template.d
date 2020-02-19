@@ -1,4 +1,5 @@
-template.o: C:/Users/GRX/picodriveds-0.1.7/arm7/source/template.c \
+template.o:  \
+ C:/Users/GRX/picodriveds-0.1.7/PicodriveDS/arm7/source/template.c \
   C:/devkitPro/libnds/include/nds.h \
   C:/devkitPro/libnds/include/nds/jtypes.h \
   C:/devkitPro/libnds/include/nds/bios.h \

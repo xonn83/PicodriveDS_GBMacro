@@ -1125,7 +1125,6 @@ int main(void)
 	// ClearMemory();
 	resetMemory2_ARM9();
 	powerON(POWER_ALL);
-
 	struct mallinfo mi;
 	
 	// videoSetMode(MODE_FB0);

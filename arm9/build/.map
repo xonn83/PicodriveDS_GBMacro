@@ -2244,40 +2244,40 @@ Linker script and memory map
  .debug_pubnames
                 0x00000f66       0x80 C:/devkitPro/libnds/lib\libnds9.a(interrupts.o)
 
-.debug_info     0x00000000     0xca15
+.debug_info     0x00000000     0xca5d
  *(.debug_info)
  .debug_info    0x00000000       0x5b c:/devkitpro/devkitarm/bin/../lib/gcc/arm-eabi/4.1.1/crti.o
- .debug_info    0x0000005b       0x8d Cyclone.o
- .debug_info    0x000000e8       0x8e DrZ80.o
- .debug_info    0x00000176       0x96 ym2612_helper.o
- .debug_info    0x0000020c     0x106e C:/devkitPro/libnds/lib\libfat.a(libfat.o)
- .debug_info    0x0000127a      0x8bb C:/devkitPro/libnds/lib\libfat.a(partition.o)
- .debug_info    0x00001b35      0x3a4 C:/devkitPro/libnds/lib\libfat.a(disc.o)
- .debug_info    0x00001ed9      0x2a0 C:/devkitPro/libnds/lib\libfat.a(io_m3cf.o)
- .debug_info    0x00002179      0x824 C:/devkitPro/libnds/lib\libfat.a(io_m3sd.o)
- .debug_info    0x0000299d      0x2a0 C:/devkitPro/libnds/lib\libfat.a(io_mpcf.o)
- .debug_info    0x00002c3d      0x9d3 C:/devkitPro/libnds/lib\libfat.a(io_njsd.o)
- .debug_info    0x00003610      0xac9 C:/devkitPro/libnds/lib\libfat.a(io_nmmc.o)
- .debug_info    0x000040d9      0x2a0 C:/devkitPro/libnds/lib\libfat.a(io_sccf.o)
- .debug_info    0x00004379      0x6c4 C:/devkitPro/libnds/lib\libfat.a(io_scsd.o)
- .debug_info    0x00004a3d      0x299 C:/devkitPro/libnds/lib\libfat.a(io_sd_common.o)
- .debug_info    0x00004cd6       0x8c C:/devkitPro/libnds/lib\libfat.a(io_dldi.o)
- .debug_info    0x00004d62       0x8e C:/devkitPro/libnds/lib\libfat.a(io_scsd_s.o)
- .debug_info    0x00004df0      0x767 C:/devkitPro/libnds/lib\libfat.a(cache.o)
- .debug_info    0x00005557     0x154e C:/devkitPro/libnds/lib\libfat.a(fatdir.o)
- .debug_info    0x00006aa5     0x19bd C:/devkitPro/libnds/lib\libfat.a(fatfile.o)
- .debug_info    0x00008462      0x6f1 C:/devkitPro/libnds/lib\libfat.a(file_allocation_table.o)
- .debug_info    0x00008b53      0x1a5 C:/devkitPro/libnds/lib\libfat.a(filetime.o)
- .debug_info    0x00008cf8      0x31a C:/devkitPro/libnds/lib\libfat.a(io_cf_common.o)
- .debug_info    0x00009012       0xd8 C:/devkitPro/libnds/lib\libfat.a(io_m3_common.o)
- .debug_info    0x000090ea       0xb8 C:/devkitPro/libnds/lib\libfat.a(io_sc_common.o)
- .debug_info    0x000091a2     0x113d C:/devkitPro/libnds/lib\libfat.a(directory.o)
- .debug_info    0x0000a2df     0x1228 C:/devkitPro/libnds/lib\libnds9.a(console.o)
- .debug_info    0x0000b507      0x4ea C:/devkitPro/libnds/lib\libnds9.a(keys.o)
- .debug_info    0x0000b9f1      0x579 C:/devkitPro/libnds/lib\libnds9.a(video.o)
- .debug_info    0x0000bf6a      0x805 C:/devkitPro/libnds/lib\libnds9.a(card.o)
- .debug_info    0x0000c76f      0x24b C:/devkitPro/libnds/lib\libnds9.a(interrupts.o)
- .debug_info    0x0000c9ba       0x5b c:/devkitpro/devkitarm/bin/../lib/gcc/arm-eabi/4.1.1/crtn.o
+ .debug_info    0x0000005b       0xa5 Cyclone.o
+ .debug_info    0x00000100       0xa6 DrZ80.o
+ .debug_info    0x000001a6       0xae ym2612_helper.o
+ .debug_info    0x00000254     0x106e C:/devkitPro/libnds/lib\libfat.a(libfat.o)
+ .debug_info    0x000012c2      0x8bb C:/devkitPro/libnds/lib\libfat.a(partition.o)
+ .debug_info    0x00001b7d      0x3a4 C:/devkitPro/libnds/lib\libfat.a(disc.o)
+ .debug_info    0x00001f21      0x2a0 C:/devkitPro/libnds/lib\libfat.a(io_m3cf.o)
+ .debug_info    0x000021c1      0x824 C:/devkitPro/libnds/lib\libfat.a(io_m3sd.o)
+ .debug_info    0x000029e5      0x2a0 C:/devkitPro/libnds/lib\libfat.a(io_mpcf.o)
+ .debug_info    0x00002c85      0x9d3 C:/devkitPro/libnds/lib\libfat.a(io_njsd.o)
+ .debug_info    0x00003658      0xac9 C:/devkitPro/libnds/lib\libfat.a(io_nmmc.o)
+ .debug_info    0x00004121      0x2a0 C:/devkitPro/libnds/lib\libfat.a(io_sccf.o)
+ .debug_info    0x000043c1      0x6c4 C:/devkitPro/libnds/lib\libfat.a(io_scsd.o)
+ .debug_info    0x00004a85      0x299 C:/devkitPro/libnds/lib\libfat.a(io_sd_common.o)
+ .debug_info    0x00004d1e       0x8c C:/devkitPro/libnds/lib\libfat.a(io_dldi.o)
+ .debug_info    0x00004daa       0x8e C:/devkitPro/libnds/lib\libfat.a(io_scsd_s.o)
+ .debug_info    0x00004e38      0x767 C:/devkitPro/libnds/lib\libfat.a(cache.o)
+ .debug_info    0x0000559f     0x154e C:/devkitPro/libnds/lib\libfat.a(fatdir.o)
+ .debug_info    0x00006aed     0x19bd C:/devkitPro/libnds/lib\libfat.a(fatfile.o)
+ .debug_info    0x000084aa      0x6f1 C:/devkitPro/libnds/lib\libfat.a(file_allocation_table.o)
+ .debug_info    0x00008b9b      0x1a5 C:/devkitPro/libnds/lib\libfat.a(filetime.o)
+ .debug_info    0x00008d40      0x31a C:/devkitPro/libnds/lib\libfat.a(io_cf_common.o)
+ .debug_info    0x0000905a       0xd8 C:/devkitPro/libnds/lib\libfat.a(io_m3_common.o)
+ .debug_info    0x00009132       0xb8 C:/devkitPro/libnds/lib\libfat.a(io_sc_common.o)
+ .debug_info    0x000091ea     0x113d C:/devkitPro/libnds/lib\libfat.a(directory.o)
+ .debug_info    0x0000a327     0x1228 C:/devkitPro/libnds/lib\libnds9.a(console.o)
+ .debug_info    0x0000b54f      0x4ea C:/devkitPro/libnds/lib\libnds9.a(keys.o)
+ .debug_info    0x0000ba39      0x579 C:/devkitPro/libnds/lib\libnds9.a(video.o)
+ .debug_info    0x0000bfb2      0x805 C:/devkitPro/libnds/lib\libnds9.a(card.o)
+ .debug_info    0x0000c7b7      0x24b C:/devkitPro/libnds/lib\libnds9.a(interrupts.o)
+ .debug_info    0x0000ca02       0x5b c:/devkitpro/devkitarm/bin/../lib/gcc/arm-eabi/4.1.1/crtn.o
 
 .debug_abbrev   0x00000000     0x2db9
  *(.debug_abbrev)
@@ -2314,40 +2314,40 @@ Linker script and memory map
  .debug_abbrev  0x00002c74      0x135 C:/devkitPro/libnds/lib\libnds9.a(interrupts.o)
  .debug_abbrev  0x00002da9       0x10 c:/devkitpro/devkitarm/bin/../lib/gcc/arm-eabi/4.1.1/crtn.o
 
-.debug_line     0x00000000    0x114e5
+.debug_line     0x00000000    0x11509
  *(.debug_line)
  .debug_line    0x00000000       0x49 c:/devkitpro/devkitarm/bin/../lib/gcc/arm-eabi/4.1.1/crti.o
- .debug_line    0x00000049     0xbf0c Cyclone.o
- .debug_line    0x0000bf55     0x1c8e DrZ80.o
- .debug_line    0x0000dbe3       0xbb ym2612_helper.o
- .debug_line    0x0000dc9e      0x261 C:/devkitPro/libnds/lib\libfat.a(libfat.o)
- .debug_line    0x0000deff      0x2e7 C:/devkitPro/libnds/lib\libfat.a(partition.o)
- .debug_line    0x0000e1e6      0x154 C:/devkitPro/libnds/lib\libfat.a(disc.o)
- .debug_line    0x0000e33a       0xc0 C:/devkitPro/libnds/lib\libfat.a(io_m3cf.o)
- .debug_line    0x0000e3fa      0x200 C:/devkitPro/libnds/lib\libfat.a(io_m3sd.o)
- .debug_line    0x0000e5fa       0xbf C:/devkitPro/libnds/lib\libfat.a(io_mpcf.o)
- .debug_line    0x0000e6b9      0x324 C:/devkitPro/libnds/lib\libfat.a(io_njsd.o)
- .debug_line    0x0000e9dd      0x2d8 C:/devkitPro/libnds/lib\libfat.a(io_nmmc.o)
- .debug_line    0x0000ecb5       0xc0 C:/devkitPro/libnds/lib\libfat.a(io_sccf.o)
- .debug_line    0x0000ed75      0x1b7 C:/devkitPro/libnds/lib\libfat.a(io_scsd.o)
- .debug_line    0x0000ef2c      0x11f C:/devkitPro/libnds/lib\libfat.a(io_sd_common.o)
- .debug_line    0x0000f04b       0x6e C:/devkitPro/libnds/lib\libfat.a(io_dldi.o)
- .debug_line    0x0000f0b9       0x9b C:/devkitPro/libnds/lib\libfat.a(io_scsd_s.o)
- .debug_line    0x0000f154      0x22f C:/devkitPro/libnds/lib\libfat.a(cache.o)
- .debug_line    0x0000f383      0x40d C:/devkitPro/libnds/lib\libfat.a(fatdir.o)
- .debug_line    0x0000f790      0x658 C:/devkitPro/libnds/lib\libfat.a(fatfile.o)
- .debug_line    0x0000fde8      0x1ee C:/devkitPro/libnds/lib\libfat.a(file_allocation_table.o)
- .debug_line    0x0000ffd6      0x114 C:/devkitPro/libnds/lib\libfat.a(filetime.o)
- .debug_line    0x000100ea      0x180 C:/devkitPro/libnds/lib\libfat.a(io_cf_common.o)
- .debug_line    0x0001026a       0xb6 C:/devkitPro/libnds/lib\libfat.a(io_m3_common.o)
- .debug_line    0x00010320       0xa7 C:/devkitPro/libnds/lib\libfat.a(io_sc_common.o)
- .debug_line    0x000103c7      0x653 C:/devkitPro/libnds/lib\libfat.a(directory.o)
- .debug_line    0x00010a1a      0x3a2 C:/devkitPro/libnds/lib\libnds9.a(console.o)
- .debug_line    0x00010dbc      0x12b C:/devkitPro/libnds/lib\libnds9.a(keys.o)
- .debug_line    0x00010ee7      0x15e C:/devkitPro/libnds/lib\libnds9.a(video.o)
- .debug_line    0x00011045      0x2fa C:/devkitPro/libnds/lib\libnds9.a(card.o)
- .debug_line    0x0001133f      0x15d C:/devkitPro/libnds/lib\libnds9.a(interrupts.o)
- .debug_line    0x0001149c       0x49 c:/devkitpro/devkitarm/bin/../lib/gcc/arm-eabi/4.1.1/crtn.o
+ .debug_line    0x00000049     0xbf18 Cyclone.o
+ .debug_line    0x0000bf61     0x1c9a DrZ80.o
+ .debug_line    0x0000dbfb       0xc7 ym2612_helper.o
+ .debug_line    0x0000dcc2      0x261 C:/devkitPro/libnds/lib\libfat.a(libfat.o)
+ .debug_line    0x0000df23      0x2e7 C:/devkitPro/libnds/lib\libfat.a(partition.o)
+ .debug_line    0x0000e20a      0x154 C:/devkitPro/libnds/lib\libfat.a(disc.o)
+ .debug_line    0x0000e35e       0xc0 C:/devkitPro/libnds/lib\libfat.a(io_m3cf.o)
+ .debug_line    0x0000e41e      0x200 C:/devkitPro/libnds/lib\libfat.a(io_m3sd.o)
+ .debug_line    0x0000e61e       0xbf C:/devkitPro/libnds/lib\libfat.a(io_mpcf.o)
+ .debug_line    0x0000e6dd      0x324 C:/devkitPro/libnds/lib\libfat.a(io_njsd.o)
+ .debug_line    0x0000ea01      0x2d8 C:/devkitPro/libnds/lib\libfat.a(io_nmmc.o)
+ .debug_line    0x0000ecd9       0xc0 C:/devkitPro/libnds/lib\libfat.a(io_sccf.o)
+ .debug_line    0x0000ed99      0x1b7 C:/devkitPro/libnds/lib\libfat.a(io_scsd.o)
+ .debug_line    0x0000ef50      0x11f C:/devkitPro/libnds/lib\libfat.a(io_sd_common.o)
+ .debug_line    0x0000f06f       0x6e C:/devkitPro/libnds/lib\libfat.a(io_dldi.o)
+ .debug_line    0x0000f0dd       0x9b C:/devkitPro/libnds/lib\libfat.a(io_scsd_s.o)
+ .debug_line    0x0000f178      0x22f C:/devkitPro/libnds/lib\libfat.a(cache.o)
+ .debug_line    0x0000f3a7      0x40d C:/devkitPro/libnds/lib\libfat.a(fatdir.o)
+ .debug_line    0x0000f7b4      0x658 C:/devkitPro/libnds/lib\libfat.a(fatfile.o)
+ .debug_line    0x0000fe0c      0x1ee C:/devkitPro/libnds/lib\libfat.a(file_allocation_table.o)
+ .debug_line    0x0000fffa      0x114 C:/devkitPro/libnds/lib\libfat.a(filetime.o)
+ .debug_line    0x0001010e      0x180 C:/devkitPro/libnds/lib\libfat.a(io_cf_common.o)
+ .debug_line    0x0001028e       0xb6 C:/devkitPro/libnds/lib\libfat.a(io_m3_common.o)
+ .debug_line    0x00010344       0xa7 C:/devkitPro/libnds/lib\libfat.a(io_sc_common.o)
+ .debug_line    0x000103eb      0x653 C:/devkitPro/libnds/lib\libfat.a(directory.o)
+ .debug_line    0x00010a3e      0x3a2 C:/devkitPro/libnds/lib\libnds9.a(console.o)
+ .debug_line    0x00010de0      0x12b C:/devkitPro/libnds/lib\libnds9.a(keys.o)
+ .debug_line    0x00010f0b      0x15e C:/devkitPro/libnds/lib\libnds9.a(video.o)
+ .debug_line    0x00011069      0x2fa C:/devkitPro/libnds/lib\libnds9.a(card.o)
+ .debug_line    0x00011363      0x15d C:/devkitPro/libnds/lib\libnds9.a(interrupts.o)
+ .debug_line    0x000114c0       0x49 c:/devkitpro/devkitarm/bin/../lib/gcc/arm-eabi/4.1.1/crtn.o
 
 .debug_frame    0x00000000     0x1590
  *(.debug_frame)
@@ -2515,7 +2515,7 @@ LOAD c:/devkitpro/devkitarm/bin/../lib/gcc/arm-eabi/4.1.1/../../../../arm-eabi/l
 END GROUP
 LOAD c:/devkitpro/devkitarm/bin/../lib/gcc/arm-eabi/4.1.1/crtend.o
 LOAD c:/devkitpro/devkitarm/bin/../lib/gcc/arm-eabi/4.1.1/crtn.o
-OUTPUT(C:/Users/GRX/picodriveds-0.1.7/arm9/picodriveds.arm9.elf elf32-littlearm)
+OUTPUT(C:/Users/GRX/picodriveds-0.1.7/PicodriveDS/arm9/PicodriveGBMacro.arm9.elf elf32-littlearm)
 
 .ARM.attributes
                 0x00000000       0x10

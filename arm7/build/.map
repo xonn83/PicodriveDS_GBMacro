@@ -556,7 +556,7 @@ LOAD c:/devkitpro/devkitarm/bin/../lib/gcc/arm-eabi/4.1.1/../../../../arm-eabi/l
 END GROUP
 LOAD c:/devkitpro/devkitarm/bin/../lib/gcc/arm-eabi/4.1.1/crtend.o
 LOAD c:/devkitpro/devkitarm/bin/../lib/gcc/arm-eabi/4.1.1/crtn.o
-OUTPUT(C:/Users/GRX/picodriveds-0.1.7/arm7/picodriveds.arm7.elf elf32-littlearm)
+OUTPUT(C:/Users/GRX/picodriveds-0.1.7/PicodriveDS/arm7/PicodriveGBMacro.arm7.elf elf32-littlearm)
 
 .ARM.attributes
                 0x00000000       0x10
