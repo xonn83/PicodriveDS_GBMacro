@@ -1,7 +1,7 @@
 #define DEBUG 0
 #define V_OFFSET 12
 #define H_OFFSET 8
-#define MAX_FRAMESKIP 4
+#define MAX_FRAMESKIP 3
 #define DESIRED_FPS 60
 
 #include <nds.h>
@@ -554,44 +554,42 @@ static int SaveStateMenu()
 
 static int DoFrame()
 {
-	if(DEBUG)
-		iprintf("HIT DOFRAME\n");
 	int pad=0;
-	// char map[8]={0,1,2,3,5,6,4,7}; // u/d/l/r/b/c/a/start
 	
 	scanKeys();
 	int keysPressed = keysHeld();
-	int kd = keysDown();
+	if (keysPressed != 0){
+		int kd = keysDown();
 
-	if (keysPressed & KEY_UP) pad|=1<<0;
-	if (keysPressed & KEY_DOWN) pad|=1<<1;
-	if (keysPressed & KEY_LEFT) pad|=1<<2;
-	if (keysPressed & KEY_RIGHT) pad|=1<<3;
-	if (keysPressed & KEY_B) pad|=1<<4;
-	if (keysPressed & KEY_A) pad|=1<<5;
-	if (keysPressed & KEY_Y) pad|=1<<6;
-	if (keysPressed & KEY_START) pad|=1<<7;
-	
-	if (keysPressed & KEY_X) {
-		lcdSwap();
-		SaveStateMenu();
-		lcdSwap();
-	}
-	
-	if ((keysPressed & KEY_R) && (scalemode == 2)) {
-		ChangeScreenPosition();
-	}
-	
-	if (keysPressed & KEY_L) {
-		if(kd & KEY_L) {
-			ChangeScaleMode();
+		if (keysPressed & KEY_UP) pad|=BIT(0);
+		else if (keysPressed & KEY_DOWN) pad|=BIT(1);
+		if (keysPressed & KEY_RIGHT) pad|=BIT(3);
+		else if (keysPressed & KEY_LEFT) pad|=BIT(2);
+		if (keysPressed & KEY_B) pad|=BIT(4);
+		if (keysPressed & KEY_A) pad|=BIT(5);
+		if (keysPressed & KEY_Y) pad|=BIT(6);
+		if (keysPressed & KEY_START) pad|=BIT(7);
+		
+		if (keysPressed & KEY_X) {
+			lcdSwap();
+			SaveStateMenu();
+			lcdSwap();
+		}
+		
+		if ((keysPressed & KEY_R) && (scalemode == 2)) {
+			ChangeScreenPosition();
+		}
+		
+		if (keysPressed & KEY_L) {
+			if(kd & KEY_L) {
+				ChangeScaleMode();
+			}
+		}
+
+		if (kd & KEY_SELECT) {
+			choosingfile = 2;
 		}
 	}
-
-	if (kd & KEY_SELECT) {
-		choosingfile = 2;
-	}
-
 	PicoPad[0]=pad;
 
 	PicoFrame();
@@ -700,7 +698,6 @@ static int DrawFrame()
 
 #ifdef SW_SCAN_RENDERER
 	UpdatePalette();
-	PicoScan=EmulateScanBG3; // Setup scanline callback
 #endif
 		
 	DoFrame();
@@ -711,10 +708,6 @@ static int DrawFrame()
 	for(scan = 223+8; scan > 8; scan--) {
 		dmaCopy(realbuff+(328*scan)+8,BG_GFX+(512*(scan-8)),320*2);
 	}
-#endif
-		
-#ifdef SW_SCAN_RENDERER
-	PicoScan=NULL;
 #endif
 	
 	pdFrameCount++;
@@ -1238,6 +1231,7 @@ int main(void)
 	}
 
 	EmulateInit();
+	PicoScan=EmulateScanBG3; // Setup scanline callback
 	lcdSwap();
 	/*
 	videoSetModeSub(MODE_5_2D | DISPLAY_BG3_ACTIVE);
