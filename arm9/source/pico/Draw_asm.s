@@ -1,6 +1,7 @@
 .extern Pico
 .extern PicoCramHigh
 .extern HighCol
+.extern cram_high
 
 .global TileNorm @ *pd (r0), addr (r1), *pal (r2)
 
@@ -241,4 +242,35 @@ BackFill:
 	bne		.do
 
     ldmfd   sp!, {r4-r9,r12}
+    bx      r12
+
+@-----------------------------------------------------------------------------------------------------
+.global UpdatePalette
+UpdatePalette:
+    stmfd   sp!, {r4-r9,lr}
+	mov		r1, #0				@r1 = while condition
+	b 		.checkwhile
+.iniwhile:
+	ldr     r2, =(Pico+0x22100)	@r2 = &Pico.cram
+	mov		r3, r1, lsl #1
+	add		r2, r2, r3			@r2 = &Pico.cram[i]
+	ldrh    r2, [r2]			@r2 = Pico.cram[i] (value)
+	lsl     r3, r2, #3
+    and     r3, r3, #30720		@r3 = (r2 & 3840)<<3
+	lsl     r4, r2, #2
+    and     r4, r4, #960		@r4 = (r2 & 240)<<2
+	lsl     r5, r2, #1
+    and     r5, r5, #30			@r5 = (r2 & 15)<<1
+	orr     r3, r3, #32768
+	orr     r3, r3, r4
+	orr     r3, r3, r5			@r3 = final value of cram
+	ldr		r4, =(cram_high)	@r4 = &cram_high
+	mov		r5, r1, lsl #1
+	add		r4, r4, r5			@r4 = &cram_high[i]
+	strh    r3, [r4]			@Saved final value of cram into &cram_high[i]
+	add		r1, #1
+.checkwhile:
+	cmp		r1, #64
+	bne 	.iniwhile
+	ldmfd   sp!, {r4-r9,r12}
     bx      r12

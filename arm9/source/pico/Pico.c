@@ -41,6 +41,8 @@ struct Pico Pico;
 // int PicoOpt=0x1f; // stereo sound
 int PicoOpt = VIDEO_OPT | SOUND_OPT;
 int PicoSkipFrame=0; // skip rendering frame?
+int cycles_68k_vblank,cycles_z80_vblank,cycles_68k_block,cycles_z80_block,cycles_z80_line,z80lines;
+int initcycles;
 
 // notaz: sram
 struct PicoSRAM SRam;
@@ -66,6 +68,8 @@ int PicoInit()
   // notaz: sram
   SRam.data=0;
   SRam.resize=1;
+  
+  initcycles = 1;
 
   return 0;
 }
@@ -288,34 +292,28 @@ static int PicoFrameHints()
 // Simple frame without H-Ints
 static int PicoFrameSimple()
 {
-  int total=0,total_z80=0,aim=0,aim_z80=0,y=0,z80lines=0,z80line=0,sects;
-  int cycles_68k_vblank,cycles_z80_vblank,cycles_68k_block,cycles_z80_block,cycles_z80_line;
-
-  if(Pico.m.pal) {
-    cycles_68k_vblank = (int) ((double) OSC_PAL  /  7 / 50 / 312 + 0.4) * 88;
-	cycles_z80_vblank = (int) ((double) OSC_PAL  / 15 / 50 / 312 + 0.4) * 88;
-    cycles_68k_block  = (int) ((double) OSC_PAL  /  7 / 50 / 312 + 0.4) * 14;
-	cycles_z80_block  = (int) ((double) OSC_PAL  / 15 / 50 / 312 + 0.4) * 14;
-	cycles_z80_line   = (int) ((double) OSC_PAL  / 15 / 50 / 312 + 0.4);
-	z80lines = 88;
-  } else {
-    cycles_68k_vblank = (int) ((double) OSC_NTSC /  7 / 60 / 262 + 0.4) * 38; // 7790
-	cycles_z80_vblank = (int) ((double) OSC_NTSC / 15 / 60 / 262 + 0.4) * 38;
-    cycles_68k_block  = (int) ((double) OSC_NTSC /  7 / 60 / 262 + 0.4) * 14;
-	cycles_z80_block  = (int) ((double) OSC_NTSC / 15 / 60 / 262 + 0.4) * 14;
-	cycles_z80_line   = (int) ((double) OSC_NTSC / 15 / 60 / 262 + 0.4); // 228
-	z80lines = 38;
+  int total,total_z80=0,aim,aim_z80=0,y,z80line=0,sects;
+  
+  
+  if (initcycles){
+	  if(Pico.m.pal) {
+		cycles_68k_vblank = (int) ((double) OSC_PAL  /  7 / 50 / 312 + 0.4) * 88;
+		cycles_z80_vblank = (int) ((double) OSC_PAL  / 15 / 50 / 312 + 0.4) * 88;
+		cycles_68k_block  = (int) ((double) OSC_PAL  /  7 / 50 / 312 + 0.4) * 14;
+		cycles_z80_block  = (int) ((double) OSC_PAL  / 15 / 50 / 312 + 0.4) * 14;
+		cycles_z80_line   = (int) ((double) OSC_PAL  / 15 / 50 / 312 + 0.4);
+		z80lines = 88;
+	  } else {
+		cycles_68k_vblank = (int) ((double) OSC_NTSC /  7 / 60 / 262 + 0.4) * 38; // 7790
+		cycles_z80_vblank = (int) ((double) OSC_NTSC / 15 / 60 / 262 + 0.4) * 38;
+		cycles_68k_block  = (int) ((double) OSC_NTSC /  7 / 60 / 262 + 0.4) * 14;
+		cycles_z80_block  = (int) ((double) OSC_NTSC / 15 / 60 / 262 + 0.4) * 14;
+		cycles_z80_line   = (int) ((double) OSC_NTSC / 15 / 60 / 262 + 0.4); // 228
+		z80lines = 38;
+	  }
+	  initcycles = 0;
   }
  
-  /* 
-  cycles_68k_vblank = (int) ((double) OSC_NTSC /  7 / 60 / 262 + 0.4) * 19; // 7790
-  cycles_z80_vblank = (int) ((double) OSC_NTSC / 15 / 60 / 262 + 0.4) * 19;
-  cycles_68k_block  = (int) ((double) OSC_NTSC /  7 / 60 / 262 + 0.4) * 7;
-  cycles_z80_block  = (int) ((double) OSC_NTSC / 15 / 60 / 262 + 0.4) * 7;
-  cycles_z80_line   = (int) ((double) OSC_NTSC / 15 / 60 / 262 + 0.4); // 228
-  z80lines = 38;
-  */
-
   Pico.m.scanline=-100;
 
 #ifdef ARM9_SOUND
@@ -412,7 +410,8 @@ static int PicoFrameSimple()
   if(!PicoSkipFrame) {
     if(!(PicoOpt&0x10))
       // Draw the screen
-      for (y=0;y<224;y++) PicoLine(y);
+      //for (y=0;y!=224;y++) PicoLine(y);
+	  PicoLine(-1); //-1 means ALL lines (0-223)
     else PicoFrameFull();
   }
   // EndProfile("PicoFrameFull");

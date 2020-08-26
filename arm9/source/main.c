@@ -64,9 +64,13 @@ u32 ydyval = 300;
 
 short scalemode = 0;
 short needswap = 1;
+short needupdate = 1;
 
 #if defined(SW_FRAME_RENDERER) || defined(SW_SCAN_RENDERER)
-static unsigned short cram_high[0x40];
+unsigned short cram_high[0x40];
+
+void UpdatePalette();
+/*
 
 void UpdatePalette()
 {
@@ -76,6 +80,7 @@ void UpdatePalette()
   for (c=0;c<64;c++) cram_high[c]=(unsigned short)PicoCram(Pico.cram[c]);
   Pico.m.dirtyPal=0;
 }
+*/
 #endif
 
 void bgupdate()
@@ -581,6 +586,7 @@ static int DoFrame()
 		}
 		
 		if (keysPressed & KEY_L) {
+			
 			if(kd & KEY_L) {
 				ChangeScaleMode();
 			}
@@ -588,6 +594,10 @@ static int DoFrame()
 
 		if (kd & KEY_SELECT) {
 			choosingfile = 2;
+		}
+		//Only for testing purposes --> delete
+		if (kd & KEY_TOUCH){
+			lcdSwap();
 		}
 	}
 	PicoPad[0]=pad;
@@ -629,7 +639,8 @@ static int EmulateScanBG3(unsigned int scan,unsigned short *sdata)
 		sdata[i] = PicoCram(((u16*)sdata)[i]);
 	}
 	*/
-	dmaCopy(sdata,BG_GFX+(512*scan),320*2);
+	//dmaCopy(sdata,BG_GFX+(512*scan),320*2);
+	dmaCopyWordsAsynch(3,sdata,BG_GFX+(512*scan),320*2);
 	// memcpy(BG_GFX+(512*scan),sdata,320);
 	// dmaCopy(sdata,VRAM_A_MAIN_BG_0x6000000+(512*scan),320*2);
 	/*
@@ -688,8 +699,6 @@ static int EmulateScan(unsigned int scan,unsigned short *sdata)
 
 static int DrawFrame()
 {
-	if(DEBUG)
-		iprintf("HIT DRAWFRAME\n");
 
 	// Now final frame is drawn:
 #ifdef SW_FRAME_RENDERER
@@ -697,15 +706,17 @@ static int DrawFrame()
 #endif
 
 #ifdef SW_SCAN_RENDERER
-	UpdatePalette();
+	if(needupdate){
+		UpdatePalette();
+		needupdate = 0;
+	}else{
+		needupdate = 1;
+	}
 #endif
-		
 	DoFrame();
-
 #ifdef SW_FRAME_RENDERER
 	unsigned int scan;
-	
-	for(scan = 223+8; scan > 8; scan--) {
+	for(scan = 223+8; scan != 8; scan--) {
 		dmaCopy(realbuff+(328*scan)+8,BG_GFX+(512*(scan-8)),320*2);
 	}
 #endif
@@ -717,11 +728,7 @@ static int DrawFrame()
 
 void EmulateFrame()
 {
-	if(DEBUG)
-		iprintf("HIT EMULATEFRAME\n");
-
-	int i=0,need=0;
-	// int time=0,frame=0;
+	int i,need;
 
 	if (choosingfile || RomData==NULL) {
 		//iprintf("YOUR ROM DATA IS NULL THAT IS NOT GOOD\n");
@@ -730,7 +737,7 @@ void EmulateFrame()
 	}
 
 	need = DESIRED_FPS - FPS;
-	// iprintf("\x1b[19;0HFPS: %d     \n",FPS);
+	iprintf("\x1b[19;0HFPS: %d     \n",FPS);
 	// iprintf("Need: %d    ",need);
 
 	if(need <= 0) {
@@ -739,7 +746,7 @@ void EmulateFrame()
 
 	if (need>MAX_FRAMESKIP) need=MAX_FRAMESKIP; // Limit frame skipping
 
-	for (i=0;i<need-1;i++) {
+	for (i=0;i!=need-1;i++) {
 		PicoSkipFrame = 1;
 		DoFrame(); // Frame skip if needed
 		// if(PsndOut)
@@ -748,9 +755,6 @@ void EmulateFrame()
 	PicoSkipFrame = 0;
 	
 	DrawFrame();
-	
-	if(DEBUG)
-		iprintf("LEAVING EMULATEFRAME\n");
 	
 	return;
 }
