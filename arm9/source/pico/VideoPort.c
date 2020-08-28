@@ -9,6 +9,11 @@
 
 #include "PicoInt.h"
 
+///NEW ASM FUNCTIONS
+unsigned int VideoRead();
+unsigned int PicoVideoRead(unsigned int a);
+///END NEW ASM FUNCTIONS
+
 static __inline void AutoIncrement()
 {
   Pico.video.addr=(unsigned short)(Pico.video.addr+Pico.video.reg[0xf]);
@@ -33,6 +38,7 @@ static void VideoWrite(unsigned int d)
   AutoIncrement();
 }
 
+/*
 static unsigned int VideoRead()
 {
   unsigned int a=0,d=0;
@@ -49,7 +55,7 @@ static unsigned int VideoRead()
   AutoIncrement();
   return d;
 }
-
+*/
 static int GetDmaSource()
 {
   struct PicoVideo *pvid=&Pico.video;
@@ -209,6 +215,7 @@ void PicoVideoWrite(unsigned int a,unsigned int d)
   }
 }
 
+/*
 unsigned int PicoVideoRead(unsigned int a)
 {
   unsigned int d=0;
@@ -245,3 +252,4 @@ end:
 
   return d;
 }
+*/

@@ -18,7 +18,12 @@
 // typedef unsigned short u16;
 // typedef unsigned int   u32;
 
+///NEW ASM FUNCTIONS
+unsigned int PicoCheckPc(unsigned int pc);
 
+///END NEW ASM FUNCTIONS
+
+/*
 static __inline int PicoMemBase(u32 pc)
 {
   int membase=0;
@@ -39,7 +44,7 @@ static __inline int PicoMemBase(u32 pc)
 
   return membase;
 }
-
+*/
 
 #ifdef EMU_A68K
 extern u8 *OP_ROM=NULL,*OP_RAM=NULL;
@@ -54,6 +59,7 @@ static void CPU_CALL PicoCheckPc(u32 pc)
 #endif
 
 #ifdef EMU_C68K
+/*
 static u32 PicoCheckPc(u32 pc)
 {
   //u32 res, add;
@@ -64,19 +70,8 @@ static u32 PicoCheckPc(u32 pc)
   PicoCpu.membase=PicoMemBase(pc);
 
   return PicoCpu.membase+pc;
-/* ineffective
-  // check for common situation with tst and branch opcode waiting loops
-  // cyclone must be prepared for this to work
-  if(((op=*(u16 *)res) & 0xFF00) == 0x4A00) { // we are jumping on tst opcode
-    add = 2;
-    if((op & 0x38) == 0x38) add += 2 << (op&1); // with word or long operand
-	op = *(u16 *)(res+add); add += 2;
-	if((op >> 12) == 6 && (char)op == (char)-add) // next op is branch back to tst
-	  PicoCpu.cycles=8; // burn cycles
-  }
-  return res;
-*/
 }
+*/
 #endif
 
 #ifdef EMU_NULL

@@ -72,6 +72,7 @@ void VcountHandler() {
 	IPC->buttons		= but;
 	vcount ^= (80 ^ 130);
 	SetYtrigger(vcount);
+
 }
 
 //---------------------------------------------------------------------------------
@@ -79,9 +80,12 @@ void VblankHandler(void) {
 //---------------------------------------------------------------------------------
 
 	u32 i;
+
+
 	//sound code  :)
 	TransferSound *snd = IPC->soundData;
 	IPC->soundData = 0;
+
 	if (0 != snd) {
 
 		for (i=0; i<snd->count; i++) {
@@ -92,6 +96,7 @@ void VblankHandler(void) {
 			}
 		}
 	}
+
 }
 
 //---------------------------------------------------------------------------------

@@ -44,11 +44,11 @@ void DrawTilesFromCache(int *hc);
 void DrawSpritesFromCache(int *hc);
 void DrawLayer(int plane, int *hcache, int maxcells);
 #endif
-
-extern int TileNorm(unsigned short *pd,int addr,unsigned short *pal);
-extern int TileFlip(unsigned short *pd,int addr,unsigned short *pal);
-extern void BackFill(int reg7);
-
+///NEW ASM FUNCTIONS
+int TileNorm(unsigned short *pd,int addr,unsigned short *pal);
+int TileFlip(unsigned short *pd,int addr,unsigned short *pal);
+void BackFill(int reg7);
+///END NEW ASM FUNCTIONS
 /*
 static int TileNorm(unsigned short *pd,int addr,unsigned short *pal)
 {
@@ -90,9 +90,7 @@ static int TileFlip(unsigned short *pd,int addr,unsigned short *pal)
   }
   return 1; // Tile blank
 }
-
 */
-
 #ifndef _ASM_DRAW_C
 static void DrawStrip(struct TileStrip *ts)
 {
@@ -558,38 +556,35 @@ static int Skip=0;
 
 int PicoLine(int scan)
 {
-  int scanend;
-  if(scan = -1){ //Process all lines
-	  scanend = 224;
-	  Scanline = 0;
-  }else{ //Process only line received
-	  scanend = scan+1;
-	  Scanline = scan;
+  if(!scan) {
+    // very first line - reset some stuff
+	rendstatus = 0;
   }
-  for (;Scanline!=scanend;Scanline++){
-	  if(!Scanline) {
-		// very first line - reset some stuff
-		rendstatus = 0;
-	  }
-	  if (Skip>0) { Skip--; return 0; } // Skip rendering lines
 
-	  // Draw screen:
-	  BackFill(Pico.video.reg[7]);
-	  if (Pico.video.reg[1]&0x40) DrawDisplay();
-	  //Overlay();
-	  if (Pico.video.reg[12]&1)
-	  {
-		Skip=PicoScan(Scanline,HighCol+32); // 40-column mode
-	  }
-	  else
-	  {
-		// Crop, centre and return 32-column mode
-		// notaz: this is not needed here, it is done later
-		//memset(HighCol,    0,64); // Left border
-		//memset(HighCol+288,0,64); // Right border
-		Skip=PicoScan(Scanline,HighCol);
-	  }
+  if (Skip>0) { Skip--; return 0; } // Skip rendering lines
+
+  Scanline=scan;
+
+  // Draw screen:
+  //if (PicoMask&0x02)
+  BackFill(Pico.video.reg[7]);
+  if (Pico.video.reg[1]&0x40) DrawDisplay();
+
+  //Overlay();
+
+  if (Pico.video.reg[12]&1)
+  {
+    Skip=PicoScan(Scanline,HighCol+32); // 40-column mode
   }
+  else
+  {
+    // Crop, centre and return 32-column mode
+	// notaz: this is not needed here, it is done later
+    //memset(HighCol,    0,64); // Left border
+    //memset(HighCol+288,0,64); // Right border
+    Skip=PicoScan(Scanline,HighCol);
+  }
+
   return 0;
 }
 
