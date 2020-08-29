@@ -20,7 +20,6 @@
 
 ///NEW ASM FUNCTIONS
 unsigned int PicoCheckPc(unsigned int pc);
-
 ///END NEW ASM FUNCTIONS
 
 /*

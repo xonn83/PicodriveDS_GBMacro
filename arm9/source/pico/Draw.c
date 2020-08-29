@@ -44,11 +44,13 @@ void DrawTilesFromCache(int *hc);
 void DrawSpritesFromCache(int *hc);
 void DrawLayer(int plane, int *hcache, int maxcells);
 #endif
+
 ///NEW ASM FUNCTIONS
 int TileNorm(unsigned short *pd,int addr,unsigned short *pal);
 int TileFlip(unsigned short *pd,int addr,unsigned short *pal);
 void BackFill(int reg7);
 ///END NEW ASM FUNCTIONS
+
 /*
 static int TileNorm(unsigned short *pd,int addr,unsigned short *pal)
 {

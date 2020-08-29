@@ -224,8 +224,7 @@ unsigned int PicoVideoRead(unsigned int a)
 
   if (a==0x00) { d=VideoRead(); goto end; }
 
-  if (a==0x04)
-  {
+  if (a==0x04) {
     d=Pico.video.status;
     d|=0x3400; // always set bits
 	d|=0x0020; // sprite collision
@@ -238,8 +237,7 @@ unsigned int PicoVideoRead(unsigned int a)
     goto end;
   }
 
-  if ((a&0x1c)==0x08)
-  {
+  if ((a&0x1c)==0x08) {
     if (Pico.m.scanline>-100) d=Pico.m.scanline; // V-Counter
     else                      d=Pico.m.rotate++; // Fudge
 
