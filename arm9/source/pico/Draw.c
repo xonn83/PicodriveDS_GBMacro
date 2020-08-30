@@ -49,6 +49,7 @@ void DrawLayer(int plane, int *hcache, int maxcells);
 int TileNorm(unsigned short *pd,int addr,unsigned short *pal);
 int TileFlip(unsigned short *pd,int addr,unsigned short *pal);
 void BackFill(int reg7);
+void DrawSprite(unsigned int *sprite,int **hc);
 ///END NEW ASM FUNCTIONS
 
 /*
@@ -337,7 +338,7 @@ static void DrawTilesFromCache(int *hc)
 	if(zero) blank=(short)code;
   }
 }
-
+/*
 static void DrawSprite(unsigned int *sprite,int **hc)
 {
   int width=0,height=0;
@@ -384,6 +385,7 @@ static void DrawSprite(unsigned int *sprite,int **hc)
     }
   }
 }
+*/
 #endif
 
 

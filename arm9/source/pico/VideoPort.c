@@ -12,13 +12,17 @@
 ///NEW ASM FUNCTIONS
 unsigned int VideoRead();
 unsigned int PicoVideoRead(unsigned int a);
+void VideoWrite(unsigned int d);
+int GetDmaSource();
+int GetDmaLength();
+//void DmaFill(int data);
 ///END NEW ASM FUNCTIONS
 
 static __inline void AutoIncrement()
 {
   Pico.video.addr=(unsigned short)(Pico.video.addr+Pico.video.reg[0xf]);
 }
-
+/*
 static void VideoWrite(unsigned int d)
 {
   unsigned int a=0;
@@ -37,7 +41,7 @@ static void VideoWrite(unsigned int d)
   
   AutoIncrement();
 }
-
+*/
 /*
 static unsigned int VideoRead()
 {
@@ -56,6 +60,7 @@ static unsigned int VideoRead()
   return d;
 }
 */
+/*
 static int GetDmaSource()
 {
   struct PicoVideo *pvid=&Pico.video;
@@ -65,7 +70,8 @@ static int GetDmaSource()
   source|=pvid->reg[0x17]<<17;
   return source;
 }
-
+*/
+/*
 static int GetDmaLength()
 {
   struct PicoVideo *pvid=&Pico.video;
@@ -75,7 +81,7 @@ static int GetDmaLength()
   len|=pvid->reg[0x14]<<8;
   return len;
 }
-
+*/
 static void DmaSlow(int source,int len)
 {
   int i=0,max=0;
