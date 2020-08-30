@@ -82,7 +82,7 @@ void UpdatePalette()
 }
 */
 #endif
-
+/*		Not used?
 void bgupdate()
 {
 	s16 c = COS[0] >> 4;
@@ -91,7 +91,7 @@ void bgupdate()
 	iprintf("\x1b[16;0Hxdxval: %d    \n",xdxval);
 	iprintf("ydyval: %d    ",ydyval);
 }
-
+*/
 void PrintRegion()
 {
 	iprintf("\n");
@@ -559,44 +559,41 @@ static int SaveStateMenu()
 
 static int DoFrame()
 {
-	if(DEBUG)
-		iprintf("HIT DOFRAME\n");
 	int pad=0;
-	// char map[8]={0,1,2,3,5,6,4,7}; // u/d/l/r/b/c/a/start
 	
 	scanKeys();
 	int keysPressed = keysHeld();
-	int kd = keysDown();
+	if(keysPressed){
+		int kd = keysDown();
+		if (keysPressed & KEY_UP) pad|=0x1;
+		else if (keysPressed & KEY_DOWN) pad|=0x2;
+		if (keysPressed & KEY_LEFT) pad|=0x4;
+		else if (keysPressed & KEY_RIGHT) pad|=0x8;
+		if (keysPressed & KEY_B) pad|=0x10;
+		if (keysPressed & KEY_A) pad|=0x20;
+		if (keysPressed & KEY_Y) pad|=0x40;
+		if (keysPressed & KEY_START) pad|=0x80;
+		
+		if (keysPressed & KEY_X) {
+			lcdSwap();
+			SaveStateMenu();
+			lcdSwap();
+		}
+		
+		if ((keysPressed & KEY_R) && (scalemode == 2)) {
+			ChangeScreenPosition();
+		}
+		
+		if (keysPressed & KEY_L) {
+			if(kd & KEY_L) {
+				ChangeScaleMode();
+			}
+		}
 
-	if (keysPressed & KEY_UP) pad|=1<<0;
-	if (keysPressed & KEY_DOWN) pad|=1<<1;
-	if (keysPressed & KEY_LEFT) pad|=1<<2;
-	if (keysPressed & KEY_RIGHT) pad|=1<<3;
-	if (keysPressed & KEY_B) pad|=1<<4;
-	if (keysPressed & KEY_A) pad|=1<<5;
-	if (keysPressed & KEY_Y) pad|=1<<6;
-	if (keysPressed & KEY_START) pad|=1<<7;
-	
-	if (keysPressed & KEY_X) {
-		lcdSwap();
-		SaveStateMenu();
-		lcdSwap();
-	}
-	
-	if ((keysPressed & KEY_R) && (scalemode == 2)) {
-		ChangeScreenPosition();
-	}
-	
-	if (keysPressed & KEY_L) {
-		if(kd & KEY_L) {
-			ChangeScaleMode();
+		if (kd & KEY_SELECT) {
+			choosingfile = 2;
 		}
 	}
-
-	if (kd & KEY_SELECT) {
-		choosingfile = 2;
-	}
-
 	PicoPad[0]=pad;
 
 	PicoFrame();
@@ -636,7 +633,8 @@ static int EmulateScanBG3(unsigned int scan,unsigned short *sdata)
 		sdata[i] = PicoCram(((u16*)sdata)[i]);
 	}
 	*/
-	dmaCopy(sdata,BG_GFX+(512*scan),320*2);
+	//dmaCopy(sdata,BG_GFX+(512*scan),640);
+	dmaCopyWords(3, sdata, BG_GFX+(512*scan), 640);
 	// memcpy(BG_GFX+(512*scan),sdata,320);
 	// dmaCopy(sdata,VRAM_A_MAIN_BG_0x6000000+(512*scan),320*2);
 	/*
@@ -695,9 +693,6 @@ static int EmulateScan(unsigned int scan,unsigned short *sdata)
 
 static int DrawFrame()
 {
-	if(DEBUG)
-		iprintf("HIT DRAWFRAME\n");
-
 	// Now final frame is drawn:
 #ifdef SW_FRAME_RENDERER
 	framebuff = realbuff;
@@ -705,7 +700,7 @@ static int DrawFrame()
 
 #ifdef SW_SCAN_RENDERER
 	UpdatePalette();
-	PicoScan=EmulateScanBG3; // Setup scanline callback
+	//PicoScan=EmulateScanBG3; // Setup scanline callback
 #endif
 		
 	DoFrame();
@@ -719,7 +714,7 @@ static int DrawFrame()
 #endif
 		
 #ifdef SW_SCAN_RENDERER
-	PicoScan=NULL;
+	//PicoScan=NULL;
 #endif
 	
 	pdFrameCount++;
@@ -729,12 +724,8 @@ static int DrawFrame()
 
 void EmulateFrame()
 {
-	if(DEBUG)
-		iprintf("HIT EMULATEFRAME\n");
-
-	int i=0,need=0;
-	// int time=0,frame=0;
-
+	int i,need;
+	
 	if (choosingfile || RomData==NULL) {
 		//iprintf("YOUR ROM DATA IS NULL THAT IS NOT GOOD\n");
 		// swiDelay(100000);
@@ -760,9 +751,6 @@ void EmulateFrame()
 	PicoSkipFrame = 0;
 	
 	DrawFrame();
-	
-	if(DEBUG)
-		iprintf("LEAVING EMULATEFRAME\n");
 	
 	return;
 }
@@ -1269,6 +1257,10 @@ int main(void)
 
 	// u32 *testMem;
 	// int mallCount = 0;
+	
+#ifdef SW_SCAN_RENDERER
+	PicoScan=EmulateScanBG3; // Setup scanline callback
+#endif
 
 	while(1) {
 		if(choosingfile) {
