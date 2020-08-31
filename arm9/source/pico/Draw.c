@@ -20,7 +20,7 @@ unsigned short HighCol[32+320+8]; // Gap for 32 column, and messy border on righ
 static int HighCacheA[41+1]; // caches for high layers
 static int HighCacheB[41+1];
 static int HighCacheS[80+1]; // and sprites
-static int rendstatus; // &1: sprite masking mode 2
+int rendstatus; // &1: sprite masking mode 2
 int Scanline=0; // Scanline
 
 
@@ -50,6 +50,7 @@ int TileNorm(unsigned short *pd,int addr,unsigned short *pal);
 int TileFlip(unsigned short *pd,int addr,unsigned short *pal);
 void BackFill(int reg7);
 void DrawSprite(unsigned int *sprite,int **hc);
+int DrawAllSprites(int *hcache, int maxwidth);
 ///END NEW ASM FUNCTIONS
 
 /*
@@ -388,7 +389,7 @@ static void DrawSprite(unsigned int *sprite,int **hc)
 */
 #endif
 
-
+/*
 static int DrawAllSprites(int *hcache, int maxwidth)
 {
   struct PicoVideo *pvid=&Pico.video;
@@ -452,7 +453,7 @@ static int DrawAllSprites(int *hcache, int maxwidth)
 
   return 0;
 }
-
+*/
 
 #ifndef _ASM_DRAW_C
 static void DrawSpritesFromCache(int *hc)
