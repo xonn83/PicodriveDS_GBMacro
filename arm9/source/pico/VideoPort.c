@@ -15,7 +15,7 @@ unsigned int PicoVideoRead(unsigned int a);
 void VideoWrite(unsigned int d);
 int GetDmaSource();
 int GetDmaLength();
-//void DmaFill(int data);
+void DmaFill(int data);
 ///END NEW ASM FUNCTIONS
 
 static __inline void AutoIncrement()
@@ -110,13 +110,14 @@ static void DmaCopy(int source,int len)
     source+=2;
   }
 }
-
+/*
 static void DmaFill(int data)
 {
   int len,i=0;
   unsigned short *a=&Pico.video.addr;
   unsigned char *vram=(unsigned char *) Pico.vram;
   unsigned char high = (unsigned char) ((data >> 8) & 0xFF);
+  unsigned char low  = (unsigned char) (data & 0xFF);
   
   len=GetDmaLength();
 
@@ -124,7 +125,7 @@ static void DmaFill(int data)
 
   // from Charles MacDonald's genvdp.txt:
   // Write lower byte to address specified
-  vram[*a ^ 1] = (unsigned char) (data & 0xFF);
+  vram[*a ^ 1] = low;
 
   for(i=0;i<len;i++) {
     // Write upper byte to adjacent address
@@ -135,7 +136,7 @@ static void DmaFill(int data)
     AutoIncrement();
   }
 }
-
+*/
 static void CommandDma()
 {
   struct PicoVideo *pvid=&Pico.video;

@@ -51,6 +51,7 @@ int TileFlip(unsigned short *pd,int addr,unsigned short *pal);
 void BackFill(int reg7);
 void DrawSprite(unsigned int *sprite,int **hc);
 int DrawAllSprites(int *hcache, int maxwidth);
+void DrawSpritesFromCache(int *hc);
 ///END NEW ASM FUNCTIONS
 
 /*
@@ -456,6 +457,7 @@ static int DrawAllSprites(int *hcache, int maxwidth)
 */
 
 #ifndef _ASM_DRAW_C
+/*
 static void DrawSpritesFromCache(int *hc)
 {
   int code, tile, sx, delta, width;
@@ -484,7 +486,7 @@ static void DrawSpritesFromCache(int *hc)
     }
   }
 }
-
+*/
 /*
 static void BackFill(int reg7)
 {

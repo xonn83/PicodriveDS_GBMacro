@@ -385,6 +385,71 @@ DrawAllSprites:
     ldr     fp, [sp], #4
 	ldmfd   sp!, {r1-r10,r12}
     bx      r12
+
+@-----------------------------------------------------------------------------------------------------
+.global DrawSpritesFromCache				@ int *hc (r0)
+DrawSpritesFromCache:
+		stmfd	sp!, {r4-r10,lr}
+        mov 	r9, r0					@r9 = *hc
+        b       .L2dsfc
+.L10dsfc:
+        ldr     r2, =PicoCramHigh
+        ldr     r2, [r2]
+        and     r3, r8, #48
+        lsl     r3, r3, #1
+        add     r2, r2, r3				@r2 = pal = PicoCramHigh + offset(code&0x30)
+        and     r3, r8, #15				@r3 = delta
+        asr     r4, r3, #2				@r4 = width
+        and     r3, r3, #3
+        add     r4, r4, #1
+        add     r3, r3, #1
+        and     r5, r8, #65536
+        cmp     r5, #0
+        beq     .L3dsfc
+        rsb     r3, r3, #0
+.L3dsfc:
+        lsl     r3, r3, #4
+        lsr     r1, r8, #17
+        lsl     r1, r1, #1				@r1 = tile
+        lsl     r6, r8, #16
+        asr     r6, r6, #22				@r6 = sx
+        b       .L4dsfc
+.L9dsfc:
+        cmp     r6, #0
+        ble     .L6dsfc
+        cmp     r6, #328
+		bge		.L2dsfc
+        lsl     r1, r1, #17
+        lsr     r1, r1, #17
+        and     r7, r8, #65536
+        cmp     r7, #0
+        beq     .L8dsfc
+        add     r0, r6, #24
+        lsl     r0, r0, #1
+        ldr     r5, =HighCol
+        add     r0, r0, r5
+        bl      TileFlip
+        b       .L6dsfc
+.L8dsfc:
+        add     r0, r6, #24
+        lsl     r0, r0, #1
+        ldr     r5, =HighCol
+        add     r0, r0, r5
+        bl      TileNorm
+.L6dsfc:
+        sub     r4, r4, #1
+        add     r6, r6, #8
+        add     r1, r1, r3
+.L4dsfc:
+        cmp     r4, #0
+        bne     .L9dsfc
+.L2dsfc:
+        ldr		r8, [r9]			@r8 = code
+		add     r9, r9, #4
+        cmp     r8, #0
+        bne     .L10dsfc
+        ldmfd   sp!, {r4-r10,lr}
+		bx      lr 
 	
 @-----------------------------------------------------------------------------------------------------
 .global PicoCheckPc				@ pc (r0)
@@ -598,35 +663,41 @@ GetDmaLength:
     bx      lr
 
 @---------------------------------------------------------------------------
-.global DmaFill_fail	@int data (r0)	[DOES NOT WORK --> CHECK]
-DmaFill_fail:
-	stmfd   sp!, {r1-r8,lr}
-	mov		r3, r0					@r3 = data
-	bl      GetDmaLength			@returns len in r0
-	ldr		r8, =(Pico+0x2224E)		@r8 = &pico.video.addr
-	ldr		r5, =(Pico+0x10000)		@r5 = &pico.vram
-	ldrh	r1, [r8]				@r1 = pico.video.addr
-	eor		r2, r1, #1				@pico.video.addr XOR 1
-	lsl		r2, r2, #1
-	add		r2, r5, r2
-	and		r4, r3, #0xFF
-	strh	r4, [r2]				@stored byte at pico.vram[pico.video.addr XOR 1]
-	mov		r2, #0
-.inifordf:
-	cmp		r2, r0
-	beq		.endfordf
-	lsr		r4, r3, #8
-	and		r4, r4, #0xFF
-	lsl		r6, r1, #1
-	add		r6, r6, r5
-	strb	r4, [r6]				@pico.vram[pico.video.addr] = (unsigned char) ((data >> 8) & 0xFF)
-	ldr		r4, =(Pico+0x22228)
-	add		r4, r4, #15
-	ldrb	r4, [r4]				@r4=pico.video.reg[0xF]
-	add		r1, r1, r4
-	strh	r1, [r8]
-	add		r2, r2, #1
-	b		.inifordf
-.endfordf:
-	ldmfd   sp!, {r1-r8,lr}
-    bx      lr
+.global DmaFill			@int data (r0)
+DmaFill:
+        stmfd   sp!, {r1-r10,fp,lr}
+        add     fp, sp, #4
+        sub     sp, sp, #32
+		mov		r5, r0
+        ldr     r8, =(Pico+0x2224E)		@r8 = &pico.video.addr
+		ldr     r7, =(Pico+0x10000)		@r7 = &pico.vram
+		ldr		r6, =0xFFFF				@r6 = useful constant
+        asr     r4, r5, #8				@r4 = high
+        and    	r5, r5, #0xFF			@r5 = low
+        ldr		r1, =(Pico+0x22228)		@-----------------------INI getDmaLength
+		ldrb	r0, [r1, #0x13]			@pico.video.reg[0x13]
+		ldrb	r1, [r1, #0x14]			@pico.video.reg[0x14]
+		lsl		r1, r1, #8
+		orr		r9, r0, r1				@-----------------------END getDmaLength  r9 = len
+		ldrh	r1, [r8]				@r1 = pico.video.addr
+        eor     r3, r1, #1
+        and		r3, r3, r6
+        mov     r2, r3
+        add     r3, r7, r2
+        strb    r5, [r3]
+        b       .L2
+.L3:
+		add     r3, r7, r1
+        strb    r4, [r3]
+        ldr     r3, =(Pico+0x22237)
+        ldrb    r3, [r3]  @ zero_extendqisi2
+        and		r3, r3, r6
+		add     r3, r1, r3
+		and		r1, r3, r6
+        sub     r9, r9, #1
+.L2:
+        cmp     r9, #1
+        bge     .L3
+		strh    r1, [r8]				@save pico.video.addr into memory
+        sub     sp, fp, #4
+		ldmfd   sp!, {r1-r10,fp,pc}
