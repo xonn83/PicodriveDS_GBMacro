@@ -57,6 +57,8 @@ static void CPU_CALL PicoCheckPc(u32 pc)
 #endif
 
 #ifdef EMU_C68K
+extern "C" u32 PicoCheckPc(u32 pc);
+/*
 static u32 PicoCheckPc(u32 pc)
 {
   //u32 res, add;
@@ -67,19 +69,8 @@ static u32 PicoCheckPc(u32 pc)
   PicoCpu.membase=PicoMemBase(pc);
 
   return PicoCpu.membase+pc;
-/* ineffective
-  // check for common situation with tst and branch opcode waiting loops
-  // cyclone must be prepared for this to work
-  if(((op=*(u16 *)res) & 0xFF00) == 0x4A00) { // we are jumping on tst opcode
-    add = 2;
-    if((op & 0x38) == 0x38) add += 2 << (op&1); // with word or long operand
-	op = *(u16 *)(res+add); add += 2;
-	if((op >> 12) == 6 && (char)op == (char)-add) // next op is branch back to tst
-	  PicoCpu.cycles=8; // burn cycles
-  }
-  return res;
-*/
 }
+*/
 #endif
 
 #ifdef EMU_NULL
@@ -94,6 +85,8 @@ int PicoInitPc(u32 pc)
 }
 
 // -----------------------------------------------------------------
+extern "C" int PadRead(int i);
+/*
 static int PadRead(int i)
 {
   int pad=0,value=0,TH;
@@ -125,6 +118,7 @@ static int PadRead(int i)
 
   return value; // will mirror later
 }
+*/
 
 // notaz: address must already be checked
 static int SRAMRead(u32 a)
@@ -139,7 +133,7 @@ static u32 OtherRead16(u32 a)
   if ((a&0xffc000)==0xa00000)
   {
 	a&=0x1fff;
-
+/*
 	if(!(PicoOpt&4)) {
       // Z80 disabled, do some faking
 	  static int zerosent = 0;
@@ -155,13 +149,11 @@ static u32 OtherRead16(u32 a)
 	  } else {
         Pico.m.z80_fakeval = 0;
 	  }
-
 	  Pico.m.z80_lastaddr = (u16) a;
 	}
-
+*/
     // Z80 ram (not byteswaped)
     d=(Pico.zram[a]<<8)|Pico.zram[a+1];
-
     goto end;
   }
 
@@ -203,7 +195,9 @@ static void OtherWrite8(u32 a,u32 d)
 
   if ((a&0xffc000)==0xa00000)  { // Z80 ram
 	Pico.zram[a&0x1fff]=(u8)d;
+#ifdef ARM9_SOUND
 	SoundPlayZ80();
+#endif
 	return;
   }
   if ((a&0xfffffc)==0xa04000)  { 

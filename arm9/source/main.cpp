@@ -750,7 +750,6 @@ static int EmulateScanBG3(unsigned int scan,unsigned short *sdata)
 	// scan goes from 0 - 223
 	
 	/*
-	/*
 	int i = 0;
 	for(i = 0; i < 320*2; i++) {
 		sdata[i] = PicoCram(((u16*)sdata)[i]);

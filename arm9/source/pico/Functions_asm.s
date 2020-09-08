@@ -6,6 +6,7 @@
 .extern PicoPad
 .extern Scanline
 .extern rendstatus
+.extern PicoOpt
 
 @---------------------------------------------------------------------------------------------------
 @old: TileNorm (r1=pdest, r2=pixels8, r3=pal) r0,r4: scratch
@@ -281,15 +282,13 @@ DrawAllSprites:
 	str     fp, [sp, #-4]!
     mov     fp, sp
     sub     sp, sp, #88
-	str		r0, [fp, #-4]			@we save *hcache on stack, offset -4 [r0 is free]
-	str		r1, [fp, #-8]			@we save maxwitdth on stack offset -8 [r1 is free]
+	str		r0, [fp, #-4]		@we save *hcache on stack, offset -4 [r0 is free]
+	str		r1, [fp, #-8]		@we save maxwitdth on stack offset -8 [r1 is free]
 	mov		r2, #0				@link = 0 (r2)
-	ldr		r3, =(Pico+0x22228)
-	add		r3, r3, #5
+	ldr		r3, =(Pico+0x22249)	@pico.video.reg[5]
 	ldrb	r3, [r3]
 	and		r3, r3, #0x7F		@table=Pico.video.reg[5]&0x7f (r3)
-	ldr		r4, =(Pico+0x22228)
-	add		r4, r4, #12
+	ldr		r4, =(Pico+0x22256)	@pico.video.reg[12]
 	ldrb	r4, [r4]
 	ands	r4, r4, #1
 	beq		.endif1das
@@ -387,8 +386,8 @@ DrawAllSprites:
     bx      r12
 
 @-----------------------------------------------------------------------------------------------------
-.global DrawSpritesFromCache2				@ int *hc (r0)
-DrawSpritesFromCache2:
+.global DrawSpritesFromCache				@ int *hc (r0)
+DrawSpritesFromCache:
 		stmfd	sp!, {r4-r10,lr}
         mov 	r9, r0					@r9 = *hc
         b       .L2dsfc
@@ -452,8 +451,8 @@ DrawSpritesFromCache2:
 		bx      lr 
 
 @-----------------------------------------------------------------------------------------------------
-.global DrawStrip2				@ TileStrip *ts (r0)
-DrawStrip2:
+.global DrawStrip				@ TileStrip *ts (r0)
+DrawStrip:
 	stmfd   sp!, {r1-r10,lr}
 	mov 	r4, r0				@r4 = ts	[r0 is free]
 	mvn		r10, #0				@r10 = oldcode
@@ -541,8 +540,8 @@ DrawStrip2:
 	bx      lr 
 		
 @-----------------------------------------------------------------------------------------------------
-.global PicoCheckPc2				@ pc (r0)
-PicoCheckPc2:
+.global PicoCheckPc				@ pc (r0)
+PicoCheckPc:
 	ldr		r3, =(PicoCpu+0x60)	@r3 = &PicoCpu.membase
 	ldr		r1, [r3]			@r1 = PicoCpu.membase (value)
 	sub		r0, r0, r1
@@ -562,13 +561,13 @@ PicoCheckPc2:
     bx      lr
 
 @-----------------------------------------------------------------------------------------------------
-.global VideoRead2
-VideoRead2:
+.global VideoRead
+VideoRead:
 	stmfd   sp!, {r2-r3,r6-r7,lr}
-	ldr		r0, =(Pico+0x2224E)
+	ldr		r0, =(Pico+0x2226A)
 	ldrh	r6, [r0]			@pico.video.addr;
 	lsr		r0, r6, #1
-	ldr		r3, =(Pico+0x2224D)
+	ldr		r3, =(Pico+0x22269)
 	ldrb	r3, [r3]			@pico.video.type
 	cmp     r3, #0
 	beq     .case1vr
@@ -599,28 +598,27 @@ VideoRead2:
 .defaultcasevr:
 	mov		r0, #0				@r0=0 (default case)
 .endcasevr:
-	ldr		r3, =(Pico+0x22228)
-	add		r3, r3, #15
-	ldrb	r3, [r3]			@r3=pico.video.reg[0xF]
+	ldr		r3, =(Pico+0x22253)	@r3=pico.video.reg[0xF]
+	ldrb	r3, [r3]			
 	add		r6, r6, r3
-	ldr		r2, =(Pico+0x2224E)
+	ldr		r2, =(Pico+0x2226A)
 	strh	r6, [r2]
 	ldmfd   sp!, {r2-r3,r6-r7,lr}
     bx      lr
 
 @---------------------------------------------------------------------------
-.global PicoVideoRead2	@ unsigned int a (r0)
-PicoVideoRead2:
+.global PicoVideoRead	@ unsigned int a (r0)
+PicoVideoRead:
 	stmfd   sp!, {r1-r5,lr}
 	and		r1, r0, #0x1C		@r1 = a&0x1c
 	cmp		r1, #0			
 	bne		.else1pvr
-	bl      VideoRead2
+	bl      VideoRead
 	b		.endpvr
 .else1pvr:
 	cmp		r1, #0x04
 	bne		.else2pvr
-	ldr		r0, =(Pico+0x22250)	@pico.video.status
+	ldr		r0, =(Pico+0x2226C)	@pico.video.status
 	ldr		r0, [r0]
 	orr		r0, r0, #0x3400
 	orr		r0, r0, #0x0020
@@ -648,8 +646,7 @@ PicoVideoRead2:
 	ldr		r0, =(Pico+0x2220C)
 	ldrh	r2, [r0]			@r2 = pico.m.scanline
 	cmn		r2, #99
-	blt		.elsescanlinepvr
-	b		.endifscanlinepvr
+	bge		.endifscanlinepvr
 .elsescanlinepvr:
 	add		r2, r2, #1
 	strb	r2, [r5]
@@ -660,8 +657,7 @@ PicoVideoRead2:
 	lsl		r0, r0, #8
 	ldr		r3, =(PicoCpu+0x5C)	@picocpu.SelCycles
 	ldr		r3, [r3]
-	mov		r2, #500
-	sub		r4, r2, r3
+	rsb		r4, r3, #500
 	lsr		r4, #1
 	and		r4, #0xFF
 	orr		r0, r0, r4
@@ -673,10 +669,10 @@ PicoVideoRead2:
     bx      r12
 
 @---------------------------------------------------------------------------
-.global VideoWrite2		@ unsigned int d (r0)
-VideoWrite2:
+.global VideoWrite		@ unsigned int d (r0)
+VideoWrite:
 	stmfd   sp!, {r1-r4,r6,lr}
-	ldr		r1, =(Pico+0x2224E)	@r1 = &pico.video.addr
+	ldr		r1, =(Pico+0x2226A)	@r1 = &pico.video.addr
 	ldrh	r6, [r1]			@r6 = pico.video.addr
 	ands 	r2, r6, #1
 	beq		.endifvw
@@ -686,7 +682,7 @@ VideoWrite2:
 	orr		r0, r2, r0			@bytes swapped
 .endifvw:
 	lsr		r4, r6, #1
-	ldr		r2, =(Pico+0x2224D)
+	ldr		r2, =(Pico+0x22269)
 	ldrb	r2, [r2]			@pico.video.type
 	cmp		r2, #5
 	beq		.case5vw
@@ -715,19 +711,18 @@ VideoWrite2:
 	add		r3, r3, r2
 	strh	r0, [r3]			@pico.vsram[a&0x003f]=r0
 .endcasevw:
-	ldr		r3, =(Pico+0x22228)
-	add		r3, r3, #15
-	ldrb	r3, [r3]			@r3=pico.video.reg[0xF]
+	ldr		r3, =(Pico+0x22253)	@r3=pico.video.reg[0xF]
+	ldrb	r3, [r3]			
 	add		r6, r6, r3
 	strh	r6, [r1]
 	ldmfd   sp!, {r1-r4,r6,lr}
     bx      lr
 
 @---------------------------------------------------------------------------
-.global GetDmaSource2
-GetDmaSource2:
+.global GetDmaSource
+GetDmaSource:
 	stmfd   sp!, {r1-r2,lr}
-	ldr		r1, =(Pico+0x22228)		
+	ldr		r1, =(Pico+0x22244)		
 	ldrb	r0, [r1, #0x15]			@pico.video.reg[0x15]
 	lsl		r0, r0, #1
 	ldrb	r2, [r1, #0x16]			@pico.video.reg[0x16]
@@ -740,10 +735,10 @@ GetDmaSource2:
     bx      lr
 
 @---------------------------------------------------------------------------
-.global GetDmaLength2
-GetDmaLength2:
+.global GetDmaLength
+GetDmaLength:
 	stmfd   sp!, {r1,lr}
-	ldr		r1, =(Pico+0x22228)		
+	ldr		r1, =(Pico+0x22244)		
 	ldrb	r0, [r1, #0x13]			@pico.video.reg[0x13]
 	ldrb	r1, [r1, #0x14]			@pico.video.reg[0x14]
 	lsl		r1, r1, #8
@@ -752,18 +747,16 @@ GetDmaLength2:
     bx      lr
 
 @---------------------------------------------------------------------------
-.global DmaFill2			@int data (r0)
-DmaFill2:
-        stmfd   sp!, {r1-r10,fp,lr}
-        add     fp, sp, #4
-        sub     sp, sp, #32
-		mov		r5, r0
-        ldr     r8, =(Pico+0x2224E)		@r8 = &pico.video.addr
+.global DmaFill			@int data (r0)
+DmaFill:
+        stmfd   sp!, {r1-r10,lr}
+        mov		r5, r0
+        ldr     r8, =(Pico+0x2226A)		@r8 = &pico.video.addr
 		ldr     r7, =(Pico+0x10000)		@r7 = &pico.vram
 		ldr		r6, =0xFFFF				@r6 = useful constant
         asr     r4, r5, #8				@r4 = high
         and    	r5, r5, #0xFF			@r5 = low
-        ldr		r1, =(Pico+0x22228)		@-----------------------INI getDmaLength
+        ldr		r1, =(Pico+0x22244)		@-----------------------INI getDmaLength
 		ldrb	r0, [r1, #0x13]			@pico.video.reg[0x13]
 		ldrb	r1, [r1, #0x14]			@pico.video.reg[0x14]
 		lsl		r1, r1, #8
@@ -778,8 +771,8 @@ DmaFill2:
 .L3:
 		add     r3, r7, r1
         strb    r4, [r3]
-        ldr     r3, =(Pico+0x22237)
-        ldrb    r3, [r3]  @ zero_extendqisi2
+        ldr     r3, =(Pico+0x22253)		@r3=pico.video.reg[0xF]
+        ldrb    r3, [r3]
         and		r3, r3, r6
 		add     r3, r1, r3
 		and		r1, r3, r6
@@ -788,5 +781,64 @@ DmaFill2:
         cmp     r9, #1
         bge     .L3
 		strh    r1, [r8]				@save pico.video.addr into memory
-        sub     sp, fp, #4
-		ldmfd   sp!, {r1-r10,fp,pc}
+		ldmfd   sp!, {r1-r10,pc}
+
+@---------------------------------------------------------------------------
+.global PadRead			@int i (r0)
+PadRead:
+	stmfd   sp!, {r4,lr}
+	mov		r4, r0						@backup of r0
+	ldr		r1, =PicoPad
+	ldr     r1, [r1, r0, lsl #2]
+    mvn     r1, r1						@r1 = pad
+	ldr		r2, =(Pico+0x22000)			@pico.ioports
+	add		r3, r0, #1 
+	ldrb	r2, [r2, r3]
+	and		r2, r2, #0x40				@r2 = TH
+	ldr		r3, =PicoOpt
+	ldr		r3, [r3]
+	ands	r3, r3, #0x20
+	beq		.endif1pr
+	ldr		r3, =(Pico+0x2220A)			@pico.m.padTHPhase
+	ldr		r3, [r3, r0]				@r3 = phase    [r0 is free]
+	cmp		r3, #2 
+	bne		.else1pr
+	cmp		r2, #0 
+	bne		.else1pr
+	and		r0, r1, #0xC0 				@ [r3 is free]
+	asr		r0, r0, #2 
+	b		.endpr
+.else1pr:
+	cmp		r3, #3 
+	bne		.endif1pr
+	cmp		r2, #0 
+	beq		.else2pr
+	and		r0, r1, #0x30 				@ [r3 is free]
+	asr		r3, r1, #8 
+	and		r3, r3, #0xF 
+	orr		r0, r0, r3
+	b		.endpr
+.else2pr:
+	and		r0, r1, #0xC0 
+	asr		r0, r0, #2 
+	orr		r0, r0, #0x0F
+	b 		.endpr
+.endif1pr:
+	cmp		r2, #0
+	beq  	.else3pr
+	and		r0, r1, #0x3F
+	b		.endpr
+.else3pr:
+	and		r0, r1, #0xC0 
+	asr		r0, r0, #2
+	and		r3, r1, #3
+	orr		r0, r0, r3
+.endpr:									@ [r2 is free]
+	ldr		r3, =(Pico+0x22000)			@pico.ioports
+	add		r2, r3, r4
+	add		r3, r3, r4
+	ldrb 	r3, [r3, #1]				@pico.ioports[i+1]
+	ldrb	r2, [r2, #4] 				@pico.ioports[i+4]
+	and		r2, r3, r2 
+	orr		r0, r0, r2
+	ldmfd   sp!, {r4,pc}
