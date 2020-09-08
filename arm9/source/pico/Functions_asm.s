@@ -141,12 +141,12 @@ BackFill:
 .global UpdatePalette
 UpdatePalette:
 	mov		r1, #0				@r1 = while condition
-	b 		.checkwhile
+	push	{r4}
+	ldr     r4, =(Pico+0x22100)	@r4 = &Pico.cram
 .iniwhile:
-	ldr     r0, =(Pico+0x22100)	@r0 = &Pico.cram
-	mov		r3, r1, lsl #1
-	add		r0, r0, r3			@r0 = &Pico.cram[i]
-	ldrh    r0, [r0]			@r0 = Pico.cram[i] (value)
+	cmp		r1, #128
+	beq 	.endwhile
+	ldrh    r0, [r4, r1]		@r0 = Pico.cram[i] (value)
 	lsl     r3, r0, #3
     and     r3, r3, #30720		@r3 = (r0 & 3840)<<3	
 	orr     r3, r3, #32768	
@@ -157,12 +157,12 @@ UpdatePalette:
     and     r2, r2, #30			@r2 = (r0 & 15)<<1	
 	orr     r3, r3, r2			@r3 = final value of cram
 	ldr		r2, =(cram_high)	@r2 = &cram_high
-	add		r2, r2, r1, lsl #1  @r2 = &cram_high[i]
+	add		r2, r2, r1			@r2 = &cram_high[i]
 	strh    r3, [r2] 			@Saved final value of cram into &cram_high[i]
-	add		r1, #1
-.checkwhile:
-	cmp		r1, #64
-	bne 	.iniwhile
+	add		r1, #2
+	b		.iniwhile
+.endwhile:
+	pop		{r4}
     bx      lr
 
 @-----------------------------------------------------------------------------------------------------
@@ -387,8 +387,8 @@ DrawAllSprites:
     bx      r12
 
 @-----------------------------------------------------------------------------------------------------
-.global DrawSpritesFromCache				@ int *hc (r0)
-DrawSpritesFromCache:
+.global DrawSpritesFromCache2				@ int *hc (r0)
+DrawSpritesFromCache2:
 		stmfd	sp!, {r4-r10,lr}
         mov 	r9, r0					@r9 = *hc
         b       .L2dsfc
@@ -450,10 +450,99 @@ DrawSpritesFromCache:
         bne     .L10dsfc
         ldmfd   sp!, {r4-r10,lr}
 		bx      lr 
-	
+
 @-----------------------------------------------------------------------------------------------------
-.global PicoCheckPc				@ pc (r0)
-PicoCheckPc:
+.global DrawStrip2				@ TileStrip *ts (r0)
+DrawStrip2:
+	stmfd   sp!, {r1-r10,lr}
+	mov 	r4, r0				@r4 = ts	[r0 is free]
+	mvn		r10, #0				@r10 = oldcode
+	ldr		r8, [r4, #8]		@ts->hscroll
+	rsb		r8, r8, #0
+	asr		r8, r8, #3			@r8 = tilex
+	ldr		r7, [r4, #4]		@ts->line
+	and		r7, r7, #7
+	lsl		r7, r7, #1			@r7 = ty
+	ldr 	r6, [r4, #8]
+	sub 	r6, r6, #1 
+	and		r6, r6, #7 
+	add 	r6, r6, #1 			@r6 = dx
+	ldr		r5, [r4, #20]		@r5 = cells
+	cmp		r6, #8
+	beq		.iniwhile1strip
+	add		r5, r5, #1
+.iniwhile1strip:
+	cmp		r5, #0
+	beq		.endwhile1strip
+	ldr		r3, [r4, #12]		@ts->xmask
+	and		r3, r3, r8 
+	ldr		r9, [r4]			@ts->nametab
+	add		r3, r3, r9
+	lsl		r3, r3, #1
+	ldr		r9, =(Pico+0x10000)
+	add		r3, r3, r9
+	ldrh	r3, [r3]			@r3 = code
+	cmp		r3, #0
+	beq		.nextwhile1strip
+	asr		r9, r3, #15
+	cmp		r9, #0
+	beq		.endif1strip
+	lsl		r9, r6, #16
+	orr		r9, r3, r9
+	lsl		r1, r7, #25 
+	orr		r9, r9, r1			@code | (dx<<16) | (ty<<25)
+	ldr		r1, [r4, #16]
+	str		r9, [r1]			@ts->hc = code | (dx<<16) | (ty<<25)
+	add		r1, r1, #4
+	str 	r1, [r4, #16]		@ts->hc++
+	b 		.nextwhile1strip
+.endif1strip:
+	cmp		r3, r10
+	beq		.endif2strip
+	mov		r10, r3
+	ldr		r9, =0x7FF
+	and		r1, r3, r9
+	lsl		r1, r1, #4 			@r1 = addr
+	ands	r9, r3, #0x1000
+	beq		.else3strip
+	add		r1, r1, #14
+	sub		r1, r1, r7
+	b		.endif3strip
+.else3strip:
+	add		r1, r1, r7
+.endif3strip:
+	ldr     r2, =PicoCramHigh
+	ldr     r2, [r2]
+	asr     r9, r3, #9
+	and     r9, r9, #0x30
+	lsl     r9, r9, #1
+	add     r2, r2, r9			@r2 = pal = PicoCramHigh + ((code>>9)&0x30);
+.endif2strip:
+	ldr		r9, =HighCol
+	add		r0, r6, #24
+	lsl		r0, r0, #1
+	add		r0, r9, r0
+	ands	r9, r3, #0x0800
+	beq		.else4strip
+	bl		TileFlip
+	b 		.nextwhile1strip
+.else4strip:
+	bl		TileNorm
+.nextwhile1strip:
+	add		r6, r6, #8
+	add		r8, r8, #1 
+	sub		r5, r5, #1
+	b		.iniwhile1strip
+.endwhile1strip:
+	mov		r1, #0
+	ldr		r0, [r4, #16]
+	str		r1, [r0]			@*ts->hc = 0
+	ldmfd   sp!, {r1-r10,lr}
+	bx      lr 
+		
+@-----------------------------------------------------------------------------------------------------
+.global PicoCheckPc2				@ pc (r0)
+PicoCheckPc2:
 	ldr		r3, =(PicoCpu+0x60)	@r3 = &PicoCpu.membase
 	ldr		r1, [r3]			@r1 = PicoCpu.membase (value)
 	sub		r0, r0, r1
@@ -473,8 +562,8 @@ PicoCheckPc:
     bx      lr
 
 @-----------------------------------------------------------------------------------------------------
-.global VideoRead
-VideoRead:
+.global VideoRead2
+VideoRead2:
 	stmfd   sp!, {r2-r3,r6-r7,lr}
 	ldr		r0, =(Pico+0x2224E)
 	ldrh	r6, [r0]			@pico.video.addr;
@@ -520,13 +609,13 @@ VideoRead:
     bx      lr
 
 @---------------------------------------------------------------------------
-.global PicoVideoRead	@ unsigned int a (r0)
-PicoVideoRead:
+.global PicoVideoRead2	@ unsigned int a (r0)
+PicoVideoRead2:
 	stmfd   sp!, {r1-r5,lr}
 	and		r1, r0, #0x1C		@r1 = a&0x1c
 	cmp		r1, #0			
 	bne		.else1pvr
-	bl      VideoRead
+	bl      VideoRead2
 	b		.endpvr
 .else1pvr:
 	cmp		r1, #0x04
@@ -584,8 +673,8 @@ PicoVideoRead:
     bx      r12
 
 @---------------------------------------------------------------------------
-.global VideoWrite		@ unsigned int d (r0)
-VideoWrite:
+.global VideoWrite2		@ unsigned int d (r0)
+VideoWrite2:
 	stmfd   sp!, {r1-r4,r6,lr}
 	ldr		r1, =(Pico+0x2224E)	@r1 = &pico.video.addr
 	ldrh	r6, [r1]			@r6 = pico.video.addr
@@ -635,8 +724,8 @@ VideoWrite:
     bx      lr
 
 @---------------------------------------------------------------------------
-.global GetDmaSource
-GetDmaSource:
+.global GetDmaSource2
+GetDmaSource2:
 	stmfd   sp!, {r1-r2,lr}
 	ldr		r1, =(Pico+0x22228)		
 	ldrb	r0, [r1, #0x15]			@pico.video.reg[0x15]
@@ -651,8 +740,8 @@ GetDmaSource:
     bx      lr
 
 @---------------------------------------------------------------------------
-.global GetDmaLength
-GetDmaLength:
+.global GetDmaLength2
+GetDmaLength2:
 	stmfd   sp!, {r1,lr}
 	ldr		r1, =(Pico+0x22228)		
 	ldrb	r0, [r1, #0x13]			@pico.video.reg[0x13]
@@ -663,8 +752,8 @@ GetDmaLength:
     bx      lr
 
 @---------------------------------------------------------------------------
-.global DmaFill			@int data (r0)
-DmaFill:
+.global DmaFill2			@int data (r0)
+DmaFill2:
         stmfd   sp!, {r1-r10,fp,lr}
         add     fp, sp, #4
         sub     sp, sp, #32

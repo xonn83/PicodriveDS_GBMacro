@@ -7,6 +7,7 @@
 // For commercial use, separate licencing terms must be obtained.
 
 
+#include <nds/dma.h>
 #include "PicoInt.h"
 #ifndef __GNUC__
 #pragma warning (disable:4706) // Disable assignment within conditional
@@ -45,15 +46,7 @@ void DrawSpritesFromCache(int *hc);
 void DrawLayer(int plane, int *hcache, int maxcells);
 #endif
 
-///NEW ASM FUNCTIONS
 int TileNorm(unsigned short *pd,int addr,unsigned short *pal);
-int TileFlip(unsigned short *pd,int addr,unsigned short *pal);
-void BackFill(int reg7);
-void DrawSprite(unsigned int *sprite,int **hc);
-int DrawAllSprites(int *hcache, int maxwidth);
-void DrawSpritesFromCache(int *hc);
-///END NEW ASM FUNCTIONS
-
 /*
 static int TileNorm(unsigned short *pd,int addr,unsigned short *pal)
 {
@@ -75,7 +68,10 @@ static int TileNorm(unsigned short *pd,int addr,unsigned short *pal)
 
   return 1; // Tile blank
 }
+*/
 
+int TileFlip(unsigned short *pd,int addr,unsigned short *pal);
+/*
 static int TileFlip(unsigned short *pd,int addr,unsigned short *pal)
 {
   unsigned int pack=0; unsigned int t=0;
@@ -96,6 +92,7 @@ static int TileFlip(unsigned short *pd,int addr,unsigned short *pal)
   return 1; // Tile blank
 }
 */
+
 #ifndef _ASM_DRAW_C
 static void DrawStrip(struct TileStrip *ts)
 {
@@ -340,6 +337,8 @@ static void DrawTilesFromCache(int *hc)
 	if(zero) blank=(short)code;
   }
 }
+
+void DrawSprite(unsigned int *sprite,int **hc);
 /*
 static void DrawSprite(unsigned int *sprite,int **hc)
 {
@@ -390,7 +389,8 @@ static void DrawSprite(unsigned int *sprite,int **hc)
 */
 #endif
 
-/*
+//int DrawAllSprites(int *hcache, int maxwidth);
+
 static int DrawAllSprites(int *hcache, int maxwidth)
 {
   struct PicoVideo *pvid=&Pico.video;
@@ -454,10 +454,8 @@ static int DrawAllSprites(int *hcache, int maxwidth)
 
   return 0;
 }
-*/
 
 #ifndef _ASM_DRAW_C
-/*
 static void DrawSpritesFromCache(int *hc)
 {
   int code, tile, sx, delta, width;
@@ -486,21 +484,24 @@ static void DrawSpritesFromCache(int *hc)
     }
   }
 }
-*/
+
+void BackFill(int reg7);
 /*
 static void BackFill(int reg7)
 {
   unsigned int back=0;
-  unsigned int *pd=NULL,*end=NULL;
+  unsigned int *pd=NULL;
+  //unsigned int *pd=NULL,*end=NULL;
 
   // Start with a blank scanline (background colour):
   back=PicoCramHigh[reg7&0x3f];
   back|=back<<16;
 
   pd= (unsigned int *)(HighCol+32);
-  end=(unsigned int *)(HighCol+32+320);
+  //end=(unsigned int *)(HighCol+32+320);
 
-  do { pd[0]=pd[1]=pd[2]=pd[3]=back; pd+=4; } while (pd<end);
+  //do { pd[0]=pd[1]=pd[2]=pd[3]=back; pd+=4; } while (pd<end);
+  dmaFillWords(back, pd, 320*2);
 }
 */
 #endif
@@ -579,10 +580,10 @@ int PicoLine(int scan)
 
   //Overlay();
 
-  if (Pico.video.reg[12]&1)
-  {
+  //if (Pico.video.reg[12]&1)
+  //{
     Skip=PicoScan(Scanline,HighCol+32); // 40-column mode
-  }
+  /*}
   else
   {
     // Crop, centre and return 32-column mode
@@ -590,7 +591,7 @@ int PicoLine(int scan)
     //memset(HighCol,    0,64); // Left border
     //memset(HighCol+288,0,64); // Right border
     Skip=PicoScan(Scanline,HighCol);
-  }
+  }*/
 
   return 0;
 }

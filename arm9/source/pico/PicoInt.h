@@ -92,6 +92,7 @@ struct PicoMisc
   unsigned char padDelay[2];  // gamepad phase time outs, so we count a delay
   unsigned char sram_changed;
   unsigned char pad1[0xd];
+  int romBank[7];
 };
 
 // some assembly stuff depend on these, do not touch!
@@ -130,7 +131,7 @@ void PicoFrameFull();
 
 // Memory.c
 int PicoInitPc(u32 pc);
-u16 CPU_CALL PicoRead16(u32 a);
+unsigned short CPU_CALL PicoRead16(u32 a);
 u32 CPU_CALL PicoRead32(u32 a);
 int PicoMemInit();
 void PicoDasm(int start,int len);

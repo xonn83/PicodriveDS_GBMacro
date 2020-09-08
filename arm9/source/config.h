@@ -11,8 +11,6 @@
 
 // #define USE_ZLIB
 
-// #define USE_EXTRA_RAM
-
-#define USE_CACHE
+#define USE_EXTRA_RAM
 
 #endif // __CONFIG_H
