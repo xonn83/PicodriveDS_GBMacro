@@ -167,8 +167,8 @@ UpdatePalette:
     bx      lr
 
 @-----------------------------------------------------------------------------------------------------
-.global DrawSprite				@unsigned int *sprite (r0), int **hc (r1)
-DrawSprite:
+.global DrawSprite2				@unsigned int *sprite (r0), int **hc (r1)
+DrawSprite2:
 	stmfd   sp!, {r1-r9,lr}
 	ldr		r2, [r0]			@sy = sprite[0] (r2)
 	lsr		r3, r2, #24			@height = sy>>24 (r3)
@@ -276,8 +276,8 @@ DrawSprite:
     bx      r12
 
 @-----------------------------------------------------------------------------------------------------
-.global DrawAllSprites		@ int *hcache (r0), int maxwidth (r1)
-DrawAllSprites:
+.global DrawAllSprites2		@ int *hcache (r0), int maxwidth (r1)
+DrawAllSprites2:
 	stmfd   sp!, {r1-r10,lr}
 	str     fp, [sp, #-4]!
     mov     fp, sp
@@ -373,7 +373,7 @@ DrawAllSprites:
 	ldr		r1, =(Pico+0x10000)	@ r1 = Pico.vram
 	add		r0, r1, r0			@ r0 = Pico.vram + offset[((table+(spin[i]<<2))&0x7ffc)];
 	sub		r1, fp, #4			@ r1 = **hcache
-	bl		DrawSprite
+	bl		DrawSprite2
 	sub		r4, r4, #1 
 	b 		.iniwhile2das
 .endwhile2das:
@@ -386,8 +386,8 @@ DrawAllSprites:
     bx      r12
 
 @-----------------------------------------------------------------------------------------------------
-.global DrawSpritesFromCache				@ int *hc (r0)
-DrawSpritesFromCache:
+.global DrawSpritesFromCache2				@ int *hc (r0)
+DrawSpritesFromCache2:
 		stmfd	sp!, {r4-r10,lr}
         mov 	r9, r0					@r9 = *hc
         b       .L2dsfc
@@ -451,8 +451,8 @@ DrawSpritesFromCache:
 		bx      lr 
 
 @-----------------------------------------------------------------------------------------------------
-.global DrawStrip				@ TileStrip *ts (r0)
-DrawStrip:
+.global DrawStrip2				@ TileStrip *ts (r0)
+DrawStrip2:
 	stmfd   sp!, {r1-r10,lr}
 	mov 	r4, r0				@r4 = ts	[r0 is free]
 	mvn		r10, #0				@r10 = oldcode
@@ -561,8 +561,8 @@ PicoCheckPc:
     bx      lr
 
 @-----------------------------------------------------------------------------------------------------
-.global VideoRead
-VideoRead:
+.global VideoRead2
+VideoRead2:
 	stmfd   sp!, {r2-r3,r6-r7,lr}
 	ldr		r0, =(Pico+0x2226A)
 	ldrh	r6, [r0]			@pico.video.addr;
@@ -607,13 +607,13 @@ VideoRead:
     bx      lr
 
 @---------------------------------------------------------------------------
-.global PicoVideoRead	@ unsigned int a (r0)
-PicoVideoRead:
+.global PicoVideoRead2	@ unsigned int a (r0)
+PicoVideoRead2:
 	stmfd   sp!, {r1-r5,lr}
 	and		r1, r0, #0x1C		@r1 = a&0x1c
 	cmp		r1, #0			
 	bne		.else1pvr
-	bl      VideoRead
+	bl      VideoRead2
 	b		.endpvr
 .else1pvr:
 	cmp		r1, #0x04
@@ -669,8 +669,8 @@ PicoVideoRead:
     bx      r12
 
 @---------------------------------------------------------------------------
-.global VideoWrite		@ unsigned int d (r0)
-VideoWrite:
+.global VideoWrite2		@ unsigned int d (r0)
+VideoWrite2:
 	stmfd   sp!, {r1-r4,r6,lr}
 	ldr		r1, =(Pico+0x2226A)	@r1 = &pico.video.addr
 	ldrh	r6, [r1]			@r6 = pico.video.addr
@@ -719,8 +719,8 @@ VideoWrite:
     bx      lr
 
 @---------------------------------------------------------------------------
-.global GetDmaSource
-GetDmaSource:
+.global GetDmaSource2
+GetDmaSource2:
 	stmfd   sp!, {r1-r2,lr}
 	ldr		r1, =(Pico+0x22244)		
 	ldrb	r0, [r1, #0x15]			@pico.video.reg[0x15]
@@ -735,8 +735,8 @@ GetDmaSource:
     bx      lr
 
 @---------------------------------------------------------------------------
-.global GetDmaLength
-GetDmaLength:
+.global GetDmaLength2
+GetDmaLength2:
 	stmfd   sp!, {r1,lr}
 	ldr		r1, =(Pico+0x22244)		
 	ldrb	r0, [r1, #0x13]			@pico.video.reg[0x13]
@@ -747,8 +747,8 @@ GetDmaLength:
     bx      lr
 
 @---------------------------------------------------------------------------
-.global DmaFill			@int data (r0)
-DmaFill:
+.global DmaFill2			@int data (r0)
+DmaFill2:
         stmfd   sp!, {r1-r10,lr}
         mov		r5, r0
         ldr     r8, =(Pico+0x2226A)		@r8 = &pico.video.addr
@@ -784,8 +784,8 @@ DmaFill:
 		ldmfd   sp!, {r1-r10,pc}
 
 @---------------------------------------------------------------------------
-.global PadRead			@int i (r0)
-PadRead:
+.global PadRead2			@int i (r0)
+PadRead2:
 	stmfd   sp!, {r4,lr}
 	mov		r4, r0						@backup of r0
 	ldr		r1, =PicoPad

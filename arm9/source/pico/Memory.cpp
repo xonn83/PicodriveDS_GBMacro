@@ -57,8 +57,8 @@ static void CPU_CALL PicoCheckPc(u32 pc)
 #endif
 
 #ifdef EMU_C68K
-extern "C" u32 PicoCheckPc(u32 pc);
-/*
+//extern "C" u32 PicoCheckPc(u32 pc);
+
 static u32 PicoCheckPc(u32 pc)
 {
   //u32 res, add;
@@ -70,7 +70,6 @@ static u32 PicoCheckPc(u32 pc)
 
   return PicoCpu.membase+pc;
 }
-*/
 #endif
 
 #ifdef EMU_NULL
@@ -85,8 +84,8 @@ int PicoInitPc(u32 pc)
 }
 
 // -----------------------------------------------------------------
-extern "C" int PadRead(int i);
-/*
+//extern "C" int PadRead(int i);
+
 static int PadRead(int i)
 {
   int pad=0,value=0,TH;
@@ -118,7 +117,7 @@ static int PadRead(int i)
 
   return value; // will mirror later
 }
-*/
+
 
 // notaz: address must already be checked
 static int SRAMRead(u32 a)

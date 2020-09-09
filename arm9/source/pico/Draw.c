@@ -94,8 +94,8 @@ static int TileFlip(unsigned short *pd,int addr,unsigned short *pal)
 */
 
 #ifndef _ASM_DRAW_C
-void DrawStrip(struct TileStrip *ts);
-/*
+//void DrawStrip(struct TileStrip *ts);
+
 static void DrawStrip(struct TileStrip *ts)
 {
   int tilex=0,dx=0,ty=0,code=0,addr=0,cells;
@@ -138,7 +138,7 @@ static void DrawStrip(struct TileStrip *ts)
   // terminate the cache list
   *ts->hc = 0;
 }
-*/
+
 #endif
 
 // this is messy
@@ -341,8 +341,8 @@ static void DrawTilesFromCache(int *hc)
   }
 }
 
-void DrawSprite(unsigned int *sprite,int **hc);
-/*
+//void DrawSprite(unsigned int *sprite,int **hc);
+
 static void DrawSprite(unsigned int *sprite,int **hc)
 {
   int width=0,height=0;
@@ -389,11 +389,11 @@ static void DrawSprite(unsigned int *sprite,int **hc)
     }
   }
 }
-*/
+
 #endif
 
-int DrawAllSprites(int *hcache, int maxwidth);
-/*
+//int DrawAllSprites(int *hcache, int maxwidth);
+
 static int DrawAllSprites(int *hcache, int maxwidth)
 {
   struct PicoVideo *pvid=&Pico.video;
@@ -457,10 +457,10 @@ static int DrawAllSprites(int *hcache, int maxwidth)
 
   return 0;
 }
-*/
+
 #ifndef _ASM_DRAW_C
-void DrawSpritesFromCache(int *hc);
-/*
+//void DrawSpritesFromCache(int *hc);
+
 static void DrawSpritesFromCache(int *hc)
 {
   int code, tile, sx, delta, width;
@@ -489,7 +489,6 @@ static void DrawSpritesFromCache(int *hc)
     }
   }
 }
-*/
 
 void BackFill(int reg7);
 /*

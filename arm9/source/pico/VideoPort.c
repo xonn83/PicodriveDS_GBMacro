@@ -14,8 +14,8 @@ static __inline void AutoIncrement()
   Pico.video.addr=(unsigned short)(Pico.video.addr+Pico.video.reg[0xf]);
 }
 
-void VideoWrite(unsigned int d);
-/*
+//void VideoWrite(unsigned int d);
+
 static void VideoWrite(unsigned int d)
 {
   unsigned int a=0;
@@ -34,10 +34,10 @@ static void VideoWrite(unsigned int d)
   
   AutoIncrement();
 }
-*/
 
-unsigned int VideoRead();
-/*
+
+//unsigned int VideoRead();
+
 static unsigned int VideoRead()
 {
   unsigned int a=0,d=0;
@@ -54,10 +54,10 @@ static unsigned int VideoRead()
   AutoIncrement();
   return d;
 }
-*/
 
-int GetDmaSource();
-/*
+
+//int GetDmaSource();
+
 static int GetDmaSource()
 {
   struct PicoVideo *pvid=&Pico.video;
@@ -67,10 +67,10 @@ static int GetDmaSource()
   source|=pvid->reg[0x17]<<17;
   return source;
 }
-*/
 
-int GetDmaLength();
-/*
+
+//int GetDmaLength();
+
 static int GetDmaLength()
 {
   struct PicoVideo *pvid=&Pico.video;
@@ -80,7 +80,7 @@ static int GetDmaLength()
   len|=pvid->reg[0x14]<<8;
   return len;
 }
-*/
+
 
 static void DmaSlow(int source,int len)
 {
@@ -111,8 +111,8 @@ static void DmaCopy(int source,int len)
   }
 }
 
-void DmaFill(int data);
-/*
+//void DmaFill(int data);
+
 static void DmaFill(int data)
 {
   int len,i=0;
@@ -137,7 +137,7 @@ static void DmaFill(int data)
     AutoIncrement();
   }
 }
-*/
+
 
 static void CommandDma()
 {
@@ -224,8 +224,8 @@ void PicoVideoWrite(unsigned int a,unsigned int d)
   }
 }
 
-unsigned int PicoVideoRead(unsigned int a);
-/*
+//unsigned int PicoVideoRead(unsigned int a);
+
 unsigned int PicoVideoRead(unsigned int a)
 {
   unsigned int d=0;
@@ -262,4 +262,3 @@ end:
 
   return d;
 }
-*/
