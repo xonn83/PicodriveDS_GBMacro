@@ -561,8 +561,8 @@ PicoCheckPc:
     bx      lr
 
 @-----------------------------------------------------------------------------------------------------
-.global VideoRead2
-VideoRead2:
+.global VideoRead
+VideoRead:
 	stmfd   sp!, {r2-r3,r6-r7,lr}
 	ldr		r0, =(Pico+0x2226A)
 	ldrh	r6, [r0]			@pico.video.addr;
@@ -607,13 +607,13 @@ VideoRead2:
     bx      lr
 
 @---------------------------------------------------------------------------
-.global PicoVideoRead2	@ unsigned int a (r0)
-PicoVideoRead2:
+.global PicoVideoRead	@ unsigned int a (r0)
+PicoVideoRead:
 	stmfd   sp!, {r1-r5,lr}
 	and		r1, r0, #0x1C		@r1 = a&0x1c
 	cmp		r1, #0			
 	bne		.else1pvr
-	bl      VideoRead2
+	bl      VideoRead
 	b		.endpvr
 .else1pvr:
 	cmp		r1, #0x04
@@ -735,14 +735,13 @@ GetDmaSource2:
     bx      lr
 
 @---------------------------------------------------------------------------
-.global GetDmaLength2
-GetDmaLength2:
+.global GetDmaLength
+GetDmaLength:
 	stmfd   sp!, {r1,lr}
 	ldr		r1, =(Pico+0x22244)		
 	ldrb	r0, [r1, #0x13]			@pico.video.reg[0x13]
 	ldrb	r1, [r1, #0x14]			@pico.video.reg[0x14]
-	lsl		r1, r1, #8
-	orr		r0, r0, r1
+	orr		r0, r0, r1, lsl #8
 	ldmfd   sp!, {r1,lr}
     bx      lr
 
@@ -784,8 +783,8 @@ DmaFill2:
 		ldmfd   sp!, {r1-r10,pc}
 
 @---------------------------------------------------------------------------
-.global PadRead2			@int i (r0)
-PadRead2:
+.global PadRead			@int i (r0)
+PadRead:
 	stmfd   sp!, {r4,lr}
 	mov		r4, r0						@backup of r0
 	ldr		r1, =PicoPad

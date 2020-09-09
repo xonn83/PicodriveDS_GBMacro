@@ -36,8 +36,8 @@ static void VideoWrite(unsigned int d)
 }
 
 
-//unsigned int VideoRead();
-
+unsigned int VideoRead();
+/*
 static unsigned int VideoRead()
 {
   unsigned int a=0,d=0;
@@ -54,7 +54,7 @@ static unsigned int VideoRead()
   AutoIncrement();
   return d;
 }
-
+*/
 
 //int GetDmaSource();
 
@@ -69,8 +69,8 @@ static int GetDmaSource()
 }
 
 
-//int GetDmaLength();
-
+int GetDmaLength();
+/*
 static int GetDmaLength()
 {
   struct PicoVideo *pvid=&Pico.video;
@@ -80,7 +80,7 @@ static int GetDmaLength()
   len|=pvid->reg[0x14]<<8;
   return len;
 }
-
+*/
 
 static void DmaSlow(int source,int len)
 {
@@ -224,8 +224,8 @@ void PicoVideoWrite(unsigned int a,unsigned int d)
   }
 }
 
-//unsigned int PicoVideoRead(unsigned int a);
-
+unsigned int PicoVideoRead(unsigned int a);
+/*
 unsigned int PicoVideoRead(unsigned int a)
 {
   unsigned int d=0;
@@ -262,3 +262,4 @@ end:
 
   return d;
 }
+*/

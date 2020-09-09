@@ -1,7 +1,7 @@
 #define DEBUG 0
 #define V_OFFSET 12
 #define H_OFFSET 8
-#define MAX_FRAMESKIP 3
+#define MAX_FRAMESKIP 2
 #define DESIRED_FPS 60
 
 #include <nds.h>
@@ -54,8 +54,11 @@ int choosingfile = 1;
 
 u32 dsFrameCount = 0;
 u32 pdFrameCount = 0;
-u32 FPS = 0;
+int FPS = 0;
+int FPS_AUX = 0;
 int frameCountForFrameSkip = 0;
+int skipDrawEvery = 3;
+int adaptedMaxFrameskip = MAX_FRAMESKIP;
 
 //static u32 xdxval = 320;
 //static u32 ydyval = 300;
@@ -713,6 +716,10 @@ static int DoFrame()
 		if (kd & KEY_SELECT) {
 			choosingfile = 2;
 		}
+		
+		if (kd & KEY_TOUCH){
+			lcdSwap();
+		}
 	}
 
 	PicoPad[0]=pad;
@@ -823,7 +830,6 @@ static int DrawFrame()
 #endif
 
 #ifdef SW_SCAN_RENDERER
-	UpdatePalette();
 	PicoScan=EmulateScanBG3; // Setup scanline callback
 #endif
 
@@ -841,9 +847,9 @@ static int DrawFrame()
 	PicoScan=NULL;
 #endif
 
-	frameCountForFrameSkip -= 2;
-	if (frameCountForFrameSkip < 0) frameCountForFrameSkip = 0;
-	pdFrameCount++;
+//	frameCountForFrameSkip -= 2;
+//	if (frameCountForFrameSkip < 0) frameCountForFrameSkip = 0;
+//	pdFrameCount++;
 	return 0;
 }
 
@@ -856,24 +862,27 @@ void EmulateFrame()
 		return;
 	}
 
-	if(DEBUG)
-		iprintf("HIT EMULATEFRAME\n");
-
 	// iprintf("\x1b[19;0HFPS: %d     \n",FPS);
-
+/*
 	for (int i=0;i<=frameCountForFrameSkip;i++) {
 		PicoSkipFrame = 1;
 		DoFrame(); // Frame skip if needed
 		// if(PsndOut)
 		//		playSound(&picosound);
 	}
+*/
+	//Check if this frame should be skipped or not
+	if (FPS_AUX > skipDrawEvery){
+		PicoSkipFrame = 1;
+		DoFrame();
+		DoFrame();
+		FPS+=2;
+		FPS_AUX = 2;
+	}
 	PicoSkipFrame = 0;
-
 	DrawFrame();
-
-	if(DEBUG)
-		iprintf("LEAVING EMULATEFRAME\n");
-
+	FPS++;
+	FPS_AUX++;
 	return;
 }
 
@@ -898,17 +907,18 @@ void processvblank()
 {
 	if(!choosingfile) {
 		dsFrameCount++;
-		// FPS = pdFrameCount;
-		// FPS = ((float)pdFrameCount / (float)dsFrameCount)*60;
-		// FPS = (60.0/(float)dsFrameCount)*pdFrameCount;
-		if(dsFrameCount > 59) {
-			FPS = pdFrameCount;
-			pdFrameCount = dsFrameCount = 0;
+		if (dsFrameCount == 60){
+			if(dsFrameCount > FPS){
+				if(skipDrawEvery-1) skipDrawEvery--;
+			}else{
+				skipDrawEvery++;
+			}
+			iprintf("\x1b[19;0HFPS: %i     \n",FPS);
+			iprintf("skip: %i     \n",skipDrawEvery);
+			FPS = 0;
+			dsFrameCount = 0;
 		}
-		else if((60 % dsFrameCount) == 0) {
-			FPS = (60/dsFrameCount)*pdFrameCount;
-		}
-		//  EmulateFrame();
+		if(dsFrameCount == 30 || dsFrameCount == 0) UpdatePalette();
 		dosVibrate();
 	} else {
 		if (currentWidth != width256) {
@@ -985,8 +995,8 @@ void LidHandler() {
 void InitInterruptHandler()
 {
 	//irqInit();
-	irqSet(IRQ_VCOUNT, processvcount);
-	irqEnable(IRQ_VCOUNT);
+	//irqSet(IRQ_VCOUNT, processvcount);
+	//irqEnable(IRQ_VCOUNT);
 	irqSet(IRQ_VBLANK, processvblank);
 	irqEnable(IRQ_VBLANK);
 	// irqSet(IRQ_LID, LidHandler);
