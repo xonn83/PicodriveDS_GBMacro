@@ -10,8 +10,8 @@ endif
 include $(DEVKITARM)/ds_rules
 
 export VERSION_MAJOR	:= 2
-export VERSION_MINOR	:= 0
-export VERSION_PATCH	:= 2
+export VERSION_MINOR	:= 1
+export VERSION_PATCH	:= 0
 
 
 VERSION	:=	$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
@@ -131,7 +131,7 @@ dist:	all
 	@tar -cvjf $(TARGET)-$(VERSION).tar.bz2 hbmenu testfiles README.html COPYING hbmenu -X exclude.lst
 	
 $(TARGET).nds:	$(TARGET).arm7 $(TARGET).arm9
-	ndstool	-o segalogo.bmp -b genesis-32x32.bmp "PicoDriveDS;Version $(VERSION);by Ryan FB" -c $(TARGET).nds -7 $(TARGET).arm7.elf -9 $(TARGET).arm9.elf
+	ndstool	-o segalogo.bmp -b genesis-32x32.bmp "PicoDriveDS for GBMacro;$(VERSION);Ryan FB & JDSoft" -c PicoDrive_GBMacro_$(VERSION).nds -7 $(TARGET).arm7.elf -9 $(TARGET).arm9.elf
 #	ndstool	-u 00030004 -g EPDA 00 "PICODRIVE" -c $(TARGET).nds -7 $(TARGET).arm7.elf -9 $(TARGET).arm9.elf \
 #  -b genesis-32x32.bmp "PicoDrive TWL; GBMacro Version"
 #	python27 fix_ndsheader.py $(CURDIR)/$(TARGET).nds
@@ -158,7 +158,7 @@ arm9/$(TARGET).elf:
 clean:
 	@echo clean ...
 	@rm -fr data
-	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).nds
+	@rm -fr $(BUILD) $(TARGET).elf PicoDrive_GBMacro_$(VERSION).nds
 	@rm -fr $(TARGET).arm7.elf
 	@rm -fr $(TARGET).arm9.elf
 	@$(MAKE) -C arm9 clean

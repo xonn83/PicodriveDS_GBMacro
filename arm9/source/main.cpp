@@ -52,13 +52,10 @@ FILE *romfile;
 
 int choosingfile = 1;
 
-u32 dsFrameCount = 0;
+int dsFrameCount = 0;
 u32 pdFrameCount = 0;
 int FPS = 0;
-int FPS_AUX = 0;
-int frameCountForFrameSkip = 0;
-int skipDrawEvery = 3;
-int adaptedMaxFrameskip = MAX_FRAMESKIP;
+int frameCountForFrameSkip = 1;
 
 //static u32 xdxval = 320;
 //static u32 ydyval = 300;
@@ -74,10 +71,7 @@ extern "C" void UpdatePalette();
 /*
 void UpdatePalette()
 {
-  int c=0;
-
-  // Update palette:
-  for (c=0;c<64;c++) cram_high[c]=(unsigned short)PicoCram(Pico.cram[c]);
+  for (int c=0;c<64;c++) cram_high[c]=(unsigned short)PicoCram(Pico.cram[c]);
   Pico.m.dirtyPal=0;
 }
 */
@@ -861,28 +855,17 @@ void EmulateFrame()
 		// swiDelay(100000);
 		return;
 	}
-
-	// iprintf("\x1b[19;0HFPS: %d     \n",FPS);
-/*
-	for (int i=0;i<=frameCountForFrameSkip;i++) {
+	//Check if this frame should be skipped or not
+	//for (int i=0;i<frameCountForFrameSkip;i++) {
+	for(int i=0;i<MAX_FRAMESKIP;i++){
+		if (FPS == dsFrameCount-1) break;
 		PicoSkipFrame = 1;
 		DoFrame(); // Frame skip if needed
-		// if(PsndOut)
-		//		playSound(&picosound);
-	}
-*/
-	//Check if this frame should be skipped or not
-	if (FPS_AUX > skipDrawEvery){
-		PicoSkipFrame = 1;
-		DoFrame();
-		DoFrame();
-		FPS+=2;
-		FPS_AUX = 2;
+		FPS++;
 	}
 	PicoSkipFrame = 0;
 	DrawFrame();
 	FPS++;
-	FPS_AUX++;
 	return;
 }
 
@@ -893,14 +876,7 @@ void processtimer()
 
 void processvcount()
 {
-	if(!choosingfile) {
-		frameCountForFrameSkip++;
-		if (frameCountForFrameSkip > MAX_FRAMESKIP) {
-			frameCountForFrameSkip = 0;
-		}
-	} else {
-		frameCountForFrameSkip = 0;
-	}
+	
 }
 
 void processvblank()
@@ -908,18 +884,12 @@ void processvblank()
 	if(!choosingfile) {
 		dsFrameCount++;
 		if (dsFrameCount == 60){
-			if(dsFrameCount > FPS){
-				if(skipDrawEvery-1) skipDrawEvery--;
-			}else{
-				skipDrawEvery++;
-			}
 			iprintf("\x1b[19;0HFPS: %i     \n",FPS);
-			iprintf("skip: %i     \n",skipDrawEvery);
 			FPS = 0;
 			dsFrameCount = 0;
 		}
-		if(dsFrameCount == 30 || dsFrameCount == 0) UpdatePalette();
 		dosVibrate();
+		if(Pico.m.dirtyPal > 9) UpdatePalette();
 	} else {
 		if (currentWidth != width256) {
 			if (scalemode != 1) ChangeScaleMode();
@@ -1177,7 +1147,7 @@ int EmulateInit()
 	// PrintRegion();
 	
 	// iprintf("\x1b[10;0H");
-	iprintf("\n\t\tPicoDriveTWL");
+	iprintf("\n\t\tPicoDriveTWL (revision)");
 	// iprintf(VERSION_NO);
 	iprintf("\n");
 
@@ -1490,8 +1460,8 @@ int main(int argc, char **argv)
 		}
 		iprintf("\x1b[17;0HBytes/128: %d              ",mallCount);
 		*/
-
 		EmulateFrame();
+		
 		if (!soundPaused) snd().updateStream();
 		// Save SRAM
 		if(Pico.m.sram_changed) {

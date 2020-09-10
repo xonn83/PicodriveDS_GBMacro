@@ -163,6 +163,9 @@ UpdatePalette:
 	add		r1, #2
 	b		.iniwhile
 .endwhile:
+	mov		r0, #0
+	ldr		r1, =(Pico+0x2220E) 
+	strb	r0, [r1]			@updated pico.m.dirtyPal
 	pop		{r4}
     bx      lr
 
