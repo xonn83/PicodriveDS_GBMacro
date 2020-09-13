@@ -851,15 +851,18 @@ void EmulateFrame()
 	}
 	//Check if this frame should be skipped or not
 	//for (int i=0;i<frameCountForFrameSkip;i++) {
-	for(int i=0;i<MAX_FRAMESKIP;i++){	
-		PicoSkipFrame = 1;
-		DoFrame(); // Frame skip if needed
+	if (FPS < dsFrameCount){
+		for(int i=0;i<MAX_FRAMESKIP;i++){	
+			if (FPS == dsFrameCount-1) break;
+			PicoSkipFrame = 1;
+			DoFrame(); // Frame skip if needed
+			FPS++;
+		}
+		
+		PicoSkipFrame = 0;
+		DrawFrame();
 		FPS++;
-		if (FPS == dsFrameCount) break;
 	}
-	PicoSkipFrame = 0;
-	DrawFrame();
-	FPS++;
 	return;
 }
 
