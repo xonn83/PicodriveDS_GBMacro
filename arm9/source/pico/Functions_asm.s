@@ -7,6 +7,7 @@
 .extern Scanline
 .extern rendstatus
 .extern PicoOpt
+.extern SRam
 
 @---------------------------------------------------------------------------------------------------
 @old: TileNorm (r1=pdest, r2=pixels8, r3=pal) r0,r4: scratch
@@ -170,13 +171,13 @@ UpdatePalette:
     bx      lr
 
 @-----------------------------------------------------------------------------------------------------
-.global DrawSprite2				@unsigned int *sprite (r0), int **hc (r1)
+.global DrawSprite2			@unsigned int *sprite (r0), int **hc (r1)	[BROKEN??]
 DrawSprite2:
 	stmfd   sp!, {r1-r9,lr}
 	ldr		r2, [r0]			@sy = sprite[0] (r2)
 	lsr		r3, r2, #24			@height = sy>>24 (r3)
-	ldr		r9, =0x1FF
-	and		r2, r2, r9
+	lsl     r2, r2, #23
+    lsr     r2, r2, #23
 	sub		r2, r2, #0x80
 	lsr		r4, r3, #2
 	and		r4, r4, #3			@width = (height>>2)&3 (r4)
@@ -188,12 +189,12 @@ DrawSprite2:
 	sub		r5, r5, r2			@row = Scanline - sy (r5) [r2 free]
 	ldr		r6, [r0, #4]		@code = sprite[1] (r6)
 	lsr		r7, r6, #16
-	ldr		r9, =0x1FF
-	and		r7, r7, r9
-	ldr		r9, =0x78
+	lsl     r7, r7, #23
+    lsr     r7, r7, #23
+	mov		r9, #0x78
 	sub		r7, r7, r9			@sx = ((code>>16)&0x1ff)-0x78 (r7)
-	ldr		r9, =0x7FF
-	and		r8, r6, r9			@tile = code&0x7ff (r8)
+	lsl     r8, r6, #21
+    lsr     r8, r8, #21
 	mov		r9, r3				@delta = height (r9)
 	ands	r2, r6, #0x1000
 	beq		.endif1ds
@@ -221,7 +222,7 @@ DrawSprite2:
 	lsl		r3, r3, #5
 	orr		r2, r2, r3
 	lsl		r3, r7, #6
-	ldr		r5, =0x0000ffc0
+	ldr		r5, =0xFFC0
 	and		r3, r3, r5
 	orr		r2, r2, r3
 	lsr		r3, r6, #9
@@ -255,8 +256,8 @@ DrawSprite2:
 	blt		.endif5ds
 	b		.endif3ds			@go to end if greater or equal
 .endif5ds:
-	ldr		r3, =0x7FFF
-	and		r8, r8, r3
+	lsl		r8, r8, #17
+	lsl		r8, r8, #17
 	ldr		r5, =HighCol
 	mov		r0, r7
 	add		r0, r0, #24
@@ -279,7 +280,7 @@ DrawSprite2:
     bx      r12
 
 @-----------------------------------------------------------------------------------------------------
-.global DrawAllSprites2		@ int *hcache (r0), int maxwidth (r1)
+.global DrawAllSprites2		@ int *hcache (r0), int maxwidth (r1) [BROKEN???]
 DrawAllSprites2:
 	stmfd   sp!, {r1-r10,lr}
 	str     fp, [sp, #-4]!
@@ -302,19 +303,18 @@ DrawAllSprites2:
 	mov		r5, #0 				@u = 0 (r5)
 .iniwhile1das:
 	cmp		r5, #80				@condition1 (u < 80)
-	beq		.endwhile1das
-	cmp		r4, #21				@condition2	(i < 21)
+	cmpne	r4, #21				@condition2	(i < 21)
 	beq		.endwhile1das
 	lsl		r6, r2, #2 			@ r6 = link << 2
 	add		r6, r6, r3			@ r6 = table + (link<<2)
-	ldr		r0, =0x7FFC
+	ldr		r0, =0x7FFC			@ Need improvement
 	and		r6, r6, r0			@ r6 = (table + (link<<2)) & 0x7FFC
 	lsl		r6, r6, #1			@ r6 = 0x(r6)0
 	ldr		r7, =(Pico+0x10000)	@ r7 = Pico.vram
 	add		r6, r6, r7			@ sprite=Pico.vram + offset[((table+(link<<2))&0x7ffc)] (r6)
 	ldr		r7, [r6]			@ code=sprite[0] (r7)
-	ldr		r0, =0x1FF
-	and		r8, r7, r0
+	lsl     r8, r7, #23
+    lsr     r8, r8, #23
 	sub		r8, r8, #0x80		@sy = (code&0x1ff)-0x80 (r8)
 	lsr		r9, r7, #24
 	and		r9, r9, #3
@@ -329,8 +329,8 @@ DrawAllSprites2:
 	bge		.nextspritedas
 	ldr		r9, [r6, #4]
 	lsr		r9, r9, #16 
-	ldr		r0, =0x1FF
-	ands	r9, r9, r0			@sx = (sprite[1]>>16)&0x1ff (r9)
+	lsl     r9, r9, #23
+    lsrs    r9, r9, #23
 	bne		.else2das
 	ldr		r0, =(rendstatus)
 	ldr		r0, [r0]
@@ -405,11 +405,8 @@ DrawSpritesFromCache2:
         and     r3, r3, #3
         add     r4, r4, #1
         add     r3, r3, #1
-        and     r5, r8, #65536
-        cmp     r5, #0
-        beq     .L3dsfc
-        rsb     r3, r3, #0
-.L3dsfc:
+        tst     r8, #65536
+        rsbne   r3, r3, #0
         lsl     r3, r3, #4
         lsr     r1, r8, #17
         lsl     r1, r1, #1				@r1 = tile
@@ -548,17 +545,19 @@ PicoCheckPc:
 	ldr		r3, =(PicoCpu+0x60)	@r3 = &PicoCpu.membase
 	ldr		r1, [r3]			@r1 = PicoCpu.membase (value)
 	sub		r0, r0, r1
-	ldr		r1, =16777215
-	and     r0, r0, r1
-	ldr		r2, =(Pico+0x22200)	@pico.rom
-	ldr		r2, [r2]
+	bic     r0, r0, #-16777216			
 	and     r1, r0, #14680064
     cmp     r1, #14680064
 	bne		.endif1pcp
-	and		r1, r0, #16711680
 	ldr		r2, =(Pico)			@pico.ram
-	sub		r2, r2, r1	
+	and		r1, r0, #16711680
+	sub		r2, r2, r1
+	str		r2, [r3]			@stored PicoCpu.membase
+	add		r0, r0, r2			@return value = PicoCpu.membase + pc
+    bx      lr
 .endif1pcp:
+	ldr		r2, =(Pico+0x22200)	@pico.rom
+	ldr		r2, [r2]			
 	str		r2, [r3]			@stored PicoCpu.membase
 	add		r0, r0, r2			@return value = PicoCpu.membase + pc
     bx      lr
@@ -566,7 +565,7 @@ PicoCheckPc:
 @-----------------------------------------------------------------------------------------------------
 .global VideoRead
 VideoRead:
-	stmfd   sp!, {r2-r3,r6-r7,lr}
+	stmfd   sp!, {r6-r7,lr}
 	ldr		r0, =(Pico+0x2226A)
 	ldrh	r6, [r0]			@pico.video.addr;
 	lsr		r0, r6, #1
@@ -585,8 +584,8 @@ VideoRead:
 	ldrh	r0, [r2]			@r0=pico.cram[a&0x003f]
 	b		.endcasevr
 .case1vr:
-	ldr		r7, =32767
-	and		r0, r0, r7
+	lsl     r0, r0, #17
+    lsr     r0, r0, #17
 	lsl		r0, r0, #1
 	ldr		r2, =(Pico+0x10000)
 	add		r2, r2, r0
@@ -606,8 +605,7 @@ VideoRead:
 	add		r6, r6, r3
 	ldr		r2, =(Pico+0x2226A)
 	strh	r6, [r2]
-	ldmfd   sp!, {r2-r3,r6-r7,lr}
-    bx      lr
+	ldmfd   sp!, {r6-r7,pc}
 
 @---------------------------------------------------------------------------
 .global PicoVideoRead	@ unsigned int a (r0)
@@ -672,9 +670,9 @@ PicoVideoRead:
     bx      r12
 
 @---------------------------------------------------------------------------
-.global VideoWrite2		@ unsigned int d (r0)
-VideoWrite2:
-	stmfd   sp!, {r1-r4,r6,lr}
+.global VideoWrite		@ unsigned int d (r0)
+VideoWrite:
+	stmfd   sp!, {r4,r6,lr}
 	ldr		r1, =(Pico+0x2226A)	@r1 = &pico.video.addr
 	ldrh	r6, [r1]			@r6 = pico.video.addr
 	ands 	r2, r6, #1
@@ -693,9 +691,8 @@ VideoWrite2:
 	beq		.case3vw
 	cmp		r2, #1
 	bne		.endcasevw
-	ldr		r2, =0x7FFF
-	and		r2, r4, r2
-	lsl		r2, r2, #1
+	lsl		r2, r4, #17
+	lsr		r2, r2, #16
 	ldr		r3, =(Pico+0x10000)
 	add		r3, r3, r2
 	strh	r0, [r3]			@pico.vram[a&0x7fff]=r0
@@ -705,7 +702,14 @@ VideoWrite2:
 	lsl		r2, r2, #1
 	ldr		r3, =(Pico+0x22100)
 	add		r3, r3, r2
+	ldrh	r4, [r3]
+	cmp		r4, r0
+	beq		.endcasevw			@new cram value is the same as value stored --> do nothing
 	strh	r0, [r3]			@pico.cram[a&0x003f]=r0
+	ldr		r3, =(Pico+0x2220E)
+	ldrb	r0, [r3]
+	add		r0, r0, #1
+	strb	r0, [r3]			@updated pico.m.dirtypal
 	b		.endcasevw
 .case5vw:
 	and		r2, r4, #0x003F
@@ -718,14 +722,13 @@ VideoWrite2:
 	ldrb	r3, [r3]			
 	add		r6, r6, r3
 	strh	r6, [r1]
-	ldmfd   sp!, {r1-r4,r6,lr}
-    bx      lr
+	ldmfd   sp!, {r4,r6,pc}
 
 @---------------------------------------------------------------------------
-.global GetDmaSource2
-GetDmaSource2:
-	stmfd   sp!, {r1-r2,lr}
-	ldr		r1, =(Pico+0x22244)		
+.global GetDmaSource
+GetDmaSource:
+	stmfd   sp!, {lr}
+	ldr		r1, =(Pico+0x22244)	
 	ldrb	r0, [r1, #0x15]			@pico.video.reg[0x15]
 	lsl		r0, r0, #1
 	ldrb	r2, [r1, #0x16]			@pico.video.reg[0x16]
@@ -734,19 +737,17 @@ GetDmaSource2:
 	ldrb	r2, [r1, #0x17]			@pico.video.reg[0x17]
 	lsl		r2, r2, #17
 	orr		r0, r0, r2
-	ldmfd   sp!, {r1-r2,lr}
-    bx      lr
+	ldmfd   sp!, {pc}
 
 @---------------------------------------------------------------------------
 .global GetDmaLength
 GetDmaLength:
-	stmfd   sp!, {r1,lr}
-	ldr		r1, =(Pico+0x22244)		
-	ldrb	r0, [r1, #0x13]			@pico.video.reg[0x13]
-	ldrb	r1, [r1, #0x14]			@pico.video.reg[0x14]
+	stmfd   sp!, {lr}
+	ldr		r1, =(Pico+0x22257)
+	ldrb	r0, [r1]				@pico.video.reg[0x13]
+	ldrb	r1, [r1, #0x1]			@pico.video.reg[0x14]
 	orr		r0, r0, r1, lsl #8
-	ldmfd   sp!, {r1,lr}
-    bx      lr
+	ldmfd   sp!, {pc}
 
 @---------------------------------------------------------------------------
 .global DmaFill2			@int data (r0)
@@ -843,4 +844,203 @@ PadRead:
 	ldrb	r2, [r2, #4] 				@pico.ioports[i+4]
 	and		r2, r3, r2 
 	orr		r0, r0, r2
+	ldmfd   sp!, {r4,pc}
+
+@---------------------------------------------------------------------------
+.global OtherRead16						@ unsigned int a (r0)
+OtherRead16:
+	stmfd   sp!, {r1-r3,lr}
+	bic     r3, r0, #-16777216
+    bic     r3, r3, #3
+	ldr		r1, =0xA04000				@Need improvement!!
+	cmp		r3, r1
+	bne 	.endif4or16
+	ldr		r1, =(Pico+0x22208)
+	ldrb	r2, [r1]
+	and		r0, r2, #3 					@r0 = Pico.m.rotate&3
+	add		r2, r2, #1
+	strb 	r2, [r1]
+	b 		.endor16
+.endif4or16:
+	bic     r1, r0, #-16777216
+    bic     r1, r1, #31
+	cmp		r1, #0xA10000
+	bne		.endif5or16
+	lsr     r0, r0, #1
+    and     r0, r0, #0xF
+	cmp		r0, #0
+	beq		.case0or16
+	cmp 	r0, #1
+	beq		.case1or16
+	cmp		r0, #2
+	beq		.case2or16
+	ldr		r2, =(Pico+0x22000)
+	add		r0, r2, r0
+	ldrb	r0, [r0]					@r0 = Pico.ioports[aa]
+	orr		r0, r0, lsr #8
+	b 		.endor16
+.case0or16:
+	ldr		r2, =(Pico+0x2220F)			
+	ldrb	r0, [r2]					@r0 = Pico.m.hardware
+	orr		r0, r0, lsr #8
+	b		.endor16
+.case1or16:
+	mov		r0, #0
+	bl		PadRead
+	ldr		r1, =(Pico+0x22000)
+	ldrb	r1, [r1, #1]
+	and		r1, r1, #0x80
+	orr		r0, r0, r1 					@r0 = PadRead(0)|Pico.ioports[1]&0x80
+	orr		r0, r0, lsr #8
+	b		.endor16
+.case2or16:
+	mov		r0, #1
+	bl		PadRead
+	ldr		r1, =(Pico+0x22000)
+	ldrb	r1, [r1, #2]
+	and		r1, r1, #0x80
+	orr		r0, r0, r1 					@r0 = PadRead(1)|Pico.ioports[2]&0x80
+	orr		r0, r0, lsr #8
+	b		.endor16
+.endif5or16:
+	ldr		r2, =0xA11100				@Needs to be improved
+	cmp		r0, r2
+	bne		.endif6or16
+	ldr		r1, =(Pico+0x22209)
+	ldrb	r0, [r1]
+	lsl		r0, r0, #8					@r0 = Pico.m.z80Run << 8
+	b		.endor16
+.endif6or16:
+	bic     r1, r0, #-16777216
+    bic     r1, r1, #31
+	cmp 	r1, #0xC00000
+	bne		.endif7or16
+	bl		PicoVideoRead				@r0 = PicoVideoRead(a)
+	orr		r0, r0, lsr #8
+	b		.endor16
+.endif7or16:
+	mov		r0, #0						@default return value (r0 = 0)
+.endor16:
+	ldmfd   sp!, {r1-r3,pc}
+
+@---------------------------------------------------------------------------
+.global PicoRead8			@unsigned int a (r0)
+PicoRead8:
+	stmfd   sp!, {r4,lr}
+	bic     r0, r0, #-16777216
+	and		r1, r0, #0xE00000
+	cmp		r1, #0xE00000
+	bne		.endif1pr8
+	eor		r1, r0, #1
+	lsl		r1, r1, #16
+	lsr		r1, r1, #16
+	ldr		r2, =Pico
+	add		r0, r2, r1					@r0 = Pico.ram+((a^1)&0xffff)
+	ldrb	r0, [r0]
+	b 		.endpr8
+.endif1pr8:
+	ldr 	r2, =(SRam)
+	ldr		r1, [r2, #0x4]				@r1 = Sram.start
+	ldr 	r3, [r2, #0x8]				@r3 = Sram.end
+	cmp		r0, r1
+	bcc		.endif2pr8
+	cmp		r0, r3
+	bhi		.endif2pr8
+	ldr		r3, =(Pico+0x22211)
+	ldrb 	r4, [r3]
+	ands	r4, r4, #1 
+	beq		.endif2pr8
+	ldr		r2, [r2]					@ r2 = Sram.data
+	sub		r2, r2, r1
+	add		r0, r2, r0					@ r0 = SRam.data-SRam.start+a
+	ldrb	r0, [r0]
+	b		.endpr8
+.endif2pr8:
+	ldr		r2, =(Pico+0x22200)
+	ldr		r1, [r2, #4]				@r1 = Pico.romsize
+	cmp 	r0, r1 
+	bcs		.endif3pr8
+	eor		r0, r0, #1
+	ldr		r2, [r2]					@r2 = Pico.rom
+	add		r0, r2, r0					
+	ldrb	r0, [r0]					@r0 = Pico.rom+(a^1)
+	b 		.endpr8
+.endif3pr8:
+	mov		r4, r0						@backup of variable a
+	bic     r0, r0, #1					@Now a is temporarly changed
+	bic     r3, r0, #-16777216			@--------------------------------------Start of OtherRead16
+    bic     r3, r3, #3
+	ldr		r1, =0xA04000				@Need improvement!!
+	cmp		r3, r1
+	bne 	.endif4pr8
+	ldr		r1, =(Pico+0x22208)
+	ldrb	r2, [r1]
+	and		r0, r2, #3 					@r0 = Pico.m.rotate&3
+	add		r2, r2, #1
+	strb 	r2, [r1]
+	b 		.endpr8b
+.endif4pr8:
+	bic     r1, r0, #-16777216
+    bic     r1, r1, #31
+	cmp		r1, #0xA10000
+	bne		.endif5pr8
+	lsr     r0, r0, #1
+    and     r0, r0, #0xF
+	cmp		r0, #0
+	beq		.case0pr8
+	cmp 	r0, #1
+	beq		.case1pr8
+	cmp		r0, #2
+	beq		.case2pr8
+	ldr		r2, =(Pico+0x22000)
+	add		r0, r2, r0
+	ldrb	r0, [r0]					@r0 = Pico.ioports[aa]
+	orr		r0, r0, lsr #8
+	b 		.endpr8b
+.case0pr8:
+	ldr		r2, =(Pico+0x2220F)			
+	ldrb	r0, [r2]					@r0 = Pico.m.hardware
+	orr		r0, r0, lsr #8
+	b		.endpr8b
+.case1pr8:
+	mov		r0, #0
+	bl		PadRead
+	ldr		r1, =(Pico+0x22000)
+	ldrb	r1, [r1, #1]
+	and		r1, r1, #0x80
+	orr		r0, r0, r1 					@r0 = PadRead(0)|Pico.ioports[1]&0x80
+	orr		r0, r0, lsr #8
+	b		.endpr8b
+.case2pr8:
+	mov		r0, #1
+	bl		PadRead
+	ldr		r1, =(Pico+0x22000)
+	ldrb	r1, [r1, #2]
+	and		r1, r1, #0x80
+	orr		r0, r0, r1 					@r0 = PadRead(1)|Pico.ioports[2]&0x80
+	orr		r0, r0, lsr #8
+	b		.endpr8b
+.endif5pr8:
+	ldr		r2, =0xA11100				@Needs to be improved
+	cmp		r0, r2
+	bne		.endif6pr8
+	ldr		r1, =(Pico+0x22209)
+	ldrb	r0, [r1]
+	lsl		r0, r0, #8					@r0 = Pico.m.z80Run << 8
+	b		.endpr8b
+.endif6pr8:
+	bic     r1, r0, #-16777216
+    bic     r1, r1, #31
+	cmp 	r1, #0xC00000
+	bne		.endif7pr8
+	bl		PicoVideoRead				@r0 = PicoVideoRead(a)
+	orr		r0, r0, lsr #8
+	b		.endpr8b
+.endif7pr8:
+	mov		r0, #0						@default return value (r0 = 0)
+.endpr8b:								@--------------------------------------End of OtherRead16	
+	ands	r1, r4, #1
+	lsreq 	r0, r0, #8
+.endpr8:
+	and		r0, r0, #0xFF
 	ldmfd   sp!, {r4,pc}

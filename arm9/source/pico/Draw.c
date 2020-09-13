@@ -341,7 +341,7 @@ static void DrawTilesFromCache(int *hc)
   }
 }
 
-//void DrawSprite(unsigned int *sprite,int **hc);
+// void DrawSprite(unsigned int *sprite,int **hc);
 
 static void DrawSprite(unsigned int *sprite,int **hc)
 {
@@ -585,10 +585,10 @@ int PicoLine(int scan)
 
   //Overlay();
 
-  //if (Pico.video.reg[12]&1)
-  //{
+  if (Pico.video.reg[12]&1)
+  {
     Skip=PicoScan(Scanline,HighCol+32); // 40-column mode
-  /*}
+  }
   else
   {
     // Crop, centre and return 32-column mode
@@ -596,7 +596,7 @@ int PicoLine(int scan)
     //memset(HighCol,    0,64); // Left border
     //memset(HighCol+288,0,64); // Right border
     Skip=PicoScan(Scanline,HighCol);
-  }*/
+  }
 
   return 0;
 }

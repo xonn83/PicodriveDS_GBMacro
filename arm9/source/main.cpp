@@ -56,6 +56,7 @@ int dsFrameCount = 0;
 u32 pdFrameCount = 0;
 int FPS = 0;
 int frameCountForFrameSkip = 1;
+unsigned char old_vreg7 = 0;
 
 //static u32 xdxval = 320;
 //static u32 ydyval = 300;
@@ -756,7 +757,7 @@ static int EmulateScanBG3(unsigned int scan,unsigned short *sdata)
 		sdata[i] = PicoCram(((u16*)sdata)[i]);
 	}
 	*/
-	dmaCopyWords(3,sdata,BG_GFX+(512*scan),320*2);
+	dmaCopyWords(3,sdata,BG_GFX+(512*scan),639);
 	// memcpy(BG_GFX+(512*scan),sdata,320);
 	// dmaCopy(sdata,VRAM_A_MAIN_BG_0x6000000+(512*scan),320*2);
 	/*
@@ -815,9 +816,6 @@ static int EmulateScan(unsigned int scan,unsigned short *sdata)
 
 static int DrawFrame()
 {
-	if(DEBUG)
-		iprintf("HIT DRAWFRAME\n");
-
 	// Now final frame is drawn:
 #ifdef SW_FRAME_RENDERER
 	framebuff = realbuff;
@@ -835,10 +833,6 @@ static int DrawFrame()
 	for(scan = 223+8; scan > 8; scan--) {
 		dmaCopy(realbuff+(328*scan)+8,BG_GFX+(512*(scan-8)),320*2);
 	}
-#endif
-
-#ifdef SW_SCAN_RENDERER
-	PicoScan=NULL;
 #endif
 
 //	frameCountForFrameSkip -= 2;
@@ -889,7 +883,7 @@ void processvblank()
 			dsFrameCount = 0;
 		}
 		dosVibrate();
-		if(Pico.m.dirtyPal > 9) UpdatePalette();
+		if(Pico.m.dirtyPal > 6) UpdatePalette();
 	} else {
 		if (currentWidth != width256) {
 			if (scalemode != 1) ChangeScaleMode();
@@ -1461,8 +1455,9 @@ int main(int argc, char **argv)
 		iprintf("\x1b[17;0HBytes/128: %d              ",mallCount);
 		*/
 		EmulateFrame();
-		
+#ifdef ARM9_SOUND
 		if (!soundPaused) snd().updateStream();
+#endif
 		// Save SRAM
 		if(Pico.m.sram_changed) {
 			// iprintf("\x1b[17:0HSaving SRAM");

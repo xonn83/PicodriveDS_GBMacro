@@ -14,8 +14,8 @@ static __inline void AutoIncrement()
   Pico.video.addr=(unsigned short)(Pico.video.addr+Pico.video.reg[0xf]);
 }
 
-//void VideoWrite(unsigned int d);
-
+void VideoWrite(unsigned int d);
+/*
 static void VideoWrite(unsigned int d)
 {
   unsigned int a=0;
@@ -28,19 +28,13 @@ static void VideoWrite(unsigned int d)
   switch (Pico.video.type)
   {
     case 1: Pico.vram [a&0x7fff]=sd; break;
-    case 3: 
-		a &= 0x003F;
-		if (Pico.cram[a] != sd){
-			Pico.cram[a] = sd;
-			Pico.m.dirtyPal++;
-		}
-		break;
+    case 3: Pico.cram [a&0x003F]=sd; Pico.m.dirtyPal++; break;
     case 5: Pico.vsram[a&0x003f]=sd; break;
   }
   
   AutoIncrement();
 }
-
+*/
 
 unsigned int VideoRead();
 /*
@@ -62,8 +56,8 @@ static unsigned int VideoRead()
 }
 */
 
-//int GetDmaSource();
-
+int GetDmaSource();
+/*
 static int GetDmaSource()
 {
   struct PicoVideo *pvid=&Pico.video;
@@ -73,7 +67,7 @@ static int GetDmaSource()
   source|=pvid->reg[0x17]<<17;
   return source;
 }
-
+*/
 
 int GetDmaLength();
 /*
