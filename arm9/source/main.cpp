@@ -851,11 +851,11 @@ void EmulateFrame()
 	}
 	//Check if this frame should be skipped or not
 	//for (int i=0;i<frameCountForFrameSkip;i++) {
-	for(int i=0;i<MAX_FRAMESKIP;i++){
-		if (FPS == dsFrameCount-1) break;
+	for(int i=0;i<MAX_FRAMESKIP;i++){	
 		PicoSkipFrame = 1;
 		DoFrame(); // Frame skip if needed
 		FPS++;
+		if (FPS == dsFrameCount) break;
 	}
 	PicoSkipFrame = 0;
 	DrawFrame();
@@ -877,13 +877,15 @@ void processvblank()
 {
 	if(!choosingfile) {
 		dsFrameCount++;
+		dosVibrate();
 		if (dsFrameCount == 60){
 			iprintf("\x1b[19;0HFPS: %i     \n",FPS);
 			FPS = 0;
 			dsFrameCount = 0;
+			UpdatePalette();
+		}else if(dsFrameCount == 15 || dsFrameCount == 30 || dsFrameCount == 45) {
+			UpdatePalette();
 		}
-		dosVibrate();
-		if(Pico.m.dirtyPal > 6) UpdatePalette();
 	} else {
 		if (currentWidth != width256) {
 			if (scalemode != 1) ChangeScaleMode();

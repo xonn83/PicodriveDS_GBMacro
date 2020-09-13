@@ -360,6 +360,9 @@ static u8 CPU_CALL PicoRead8(u32 a)
   return (u8)d;
 }
 */
+
+extern "C" u16 CPU_CALL PicoRead16(u32 a);
+/*
 u16 CPU_CALL PicoRead16(u32 a)
 {
   u16 d=0;
@@ -383,7 +386,10 @@ u16 CPU_CALL PicoRead16(u32 a)
 #endif
   return d;
 }
+*/
 
+extern "C" u32 CPU_CALL PicoRead32(u32 a);
+/*
 u32 CPU_CALL PicoRead32(u32 a)
 {
   u32 d=0;
@@ -407,7 +413,7 @@ u32 CPU_CALL PicoRead32(u32 a)
 #endif
   return d;
 }
-
+*/
 // -----------------------------------------------------------------
 //                            Write Ram
 
