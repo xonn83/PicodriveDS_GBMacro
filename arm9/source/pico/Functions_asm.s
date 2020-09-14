@@ -12,14 +12,14 @@
 @---------------------------------------------------------------------------------------------------
 .global TileNorm		@ unsigned short pd (r0), int addr (r1), unsigned short pal (r2)
 TileNorm:
-	stmfd   sp!, {r1-r4, lr}			
+	stmfd   sp!, {r4, lr}			
 	ldr     r3, =(Pico+0x10000)		@Pico.vram
 	lsl     r1, r1, #1
 	add		r3, r3, r1
 	ldr     r4, [r3]				@r4 now has pack
-	mov		r3, #0x1E				@in binary: 00011110
 	cmp     r4, #0
 	beq     .endifblank
+	mov		r3, #0x1E				@ 00011110
     ands    r1, r3, r4, lsr #11 @ #0x0000f000
     ldrneh  r1, [r2, r1]
     strneh  r1, [r0]
@@ -45,25 +45,23 @@ TileNorm:
     ldrneh  r1, [r2, r1]
     strneh  r1, [r0,#14]
 	mov     r0, #0				@r0 contains OK return value
-	ldmfd   sp!, {r1-r4, r12}		
-    bx      r12
+	ldmfd   sp!, {r4, pc}
 .endifblank:
 	mov     r0, #1				@r0 contains BLANK return value
-	ldmfd   sp!, {r1-r4, r12}		
-    bx      r12
+	ldmfd   sp!, {r4, pc}
 	
 @------------------------------------------------------------------------
 .global TileFlip		@ unsigned short pd (r0), int addr (r1), unsigned short pal (r2)
 
 TileFlip:
-	stmfd   sp!, {r1-r4, lr}			
+	stmfd   sp!, {r4, lr}			
 	ldr     r3, =(Pico+0x10000)		@Pico.vram
 	lsl     r1, r1, #1
 	add		r3, r3, r1
 	ldr     r4, [r3]				@r4 now has pack
-	mov		r3, #0x1E				@in binary: 00011110
 	cmp     r4, #0
 	beq     .endifblank2
+	mov		r3, #0x1E				@ 00011110
     ands    r1, r3, r4, lsr #15 @ #0x000f0000
     ldrneh  r1, [r2, r1]
     strneh  r1, [r0]
@@ -89,12 +87,10 @@ TileFlip:
     ldrneh  r1, [r2, r1]
     strneh  r1, [r0, #14]
 	mov     r0, #0				@r0 contains OK return value
-	ldmfd   sp!, {r1-r4, r12}		
-    bx      r12
+	ldmfd   sp!, {r4, pc}
 .endifblank2:
 	mov     r0, #1				@r0 contains BLANK return value
-	ldmfd   sp!, {r1-r4, r12}		
-    bx      r12
+	ldmfd   sp!, {r4, pc}
 		
 @-----------------------------------------------------------------------------------------------------
 .global BackFill @ reg7 (r0)
@@ -134,15 +130,16 @@ BackFill:
     stmia   lr!, {r0-r9}
     stmia   lr!, {r0-r9}
     stmia   lr!, {r0-r9}
-    ldmfd   sp!, {r4-r9,r12}
-    bx      r12	
+    ldmfd   sp!, {r4-r9,pc}	
 	
 @-----------------------------------------------------------------------------------------------------
 .global UpdatePalette
 UpdatePalette:
 	mov		r1, #0				@r1 = while condition
 	push	{r4}
+	push	{r5}
 	ldr     r4, =(Pico+0x22100)	@r4 = &Pico.cram
+	ldr		r5, =(cram_high)	@r2 = &cram_high
 .iniwhile:
 	cmp		r1, #128
 	beq 	.endwhile
@@ -156,26 +153,23 @@ UpdatePalette:
 	lsl     r2, r0, #1
     and     r2, r2, #30			@r2 = (r0 & 15)<<1	
 	orr     r3, r3, r2			@r3 = final value of cram
-	ldr		r2, =(cram_high)	@r2 = &cram_high
-	add		r2, r2, r1			@r2 = &cram_high[i]
+	add		r2, r5, r1			@r2 = &cram_high[i]
 	strh    r3, [r2] 			@Saved final value of cram into &cram_high[i]
 	add		r1, #2
 	b		.iniwhile
 .endwhile:
-	mov		r0, #0
-	ldr		r1, =(Pico+0x2220E) 
-	strb	r0, [r1]			@updated pico.m.dirtyPal
+	pop		{r5}
 	pop		{r4}
     bx      lr
 
 @-----------------------------------------------------------------------------------------------------
-.global DrawSprite2			@unsigned int *sprite (r0), int **hc (r1)	[BROKEN??]
-DrawSprite2:
-	stmfd   sp!, {r1-r9,lr}
+.global DrawSprite			@unsigned int *sprite (r0), int **hc (r1)	[BROKEN??]
+DrawSprite:
+	stmfd   sp!, {r4-r9,lr}
 	ldr		r2, [r0]			@sy = sprite[0] (r2)
 	lsr		r3, r2, #24			@height = sy>>24 (r3)
-	lsl     r2, r2, #23
-    lsr     r2, r2, #23
+	lsl		r2, r2, #23
+	lsr		r2, r2, #23
 	sub		r2, r2, #0x80
 	lsr		r4, r3, #2
 	and		r4, r4, #3			@width = (height>>2)&3 (r4)
@@ -187,12 +181,11 @@ DrawSprite2:
 	sub		r5, r5, r2			@row = Scanline - sy (r5) [r2 free]
 	ldr		r6, [r0, #4]		@code = sprite[1] (r6)
 	lsr		r7, r6, #16
-	lsl     r7, r7, #23
-    lsr     r7, r7, #23
-	mov		r9, #0x78
-	sub		r7, r7, r9			@sx = ((code>>16)&0x1ff)-0x78 (r7)
-	lsl     r8, r6, #21
-    lsr     r8, r8, #21
+	lsl		r7, r7, #23
+	lsr		r7, r7, #23
+	sub		r7, r7, #0x78		@sx = ((code>>16)&0x1ff)-0x78 (r7)
+	lsl		r8, r6, #21
+	lsr		r8, r8, #21
 	mov		r9, r3				@delta = height (r9)
 	ands	r2, r6, #0x1000
 	beq		.endif1ds
@@ -220,7 +213,8 @@ DrawSprite2:
 	lsl		r3, r3, #5
 	orr		r2, r2, r3
 	lsl		r3, r7, #6
-	ldr		r5, =0xFFC0
+	mov		r5, #0x10000
+	sub		r5, r5, #0x40
 	and		r3, r3, r5
 	orr		r2, r2, r3
 	lsr		r3, r6, #9
@@ -234,7 +228,7 @@ DrawSprite2:
 	str		r2, [r5]			@**hc updated
 	add		r5, r5, #4
 	str		r5, [r1]			@ [r5 is free]
-	b 		.endif3ds
+	b 		.endwhileds
 .elseif3ds:
 	lsl		r9, r9, #4
 	ldr 	r2, =PicoCramHigh
@@ -243,39 +237,29 @@ DrawSprite2:
 	and		r3, r3, #0x30
 	lsl		r3, r3, #1
 	add		r2, r2, r3			@pal = PicoCramHigh+((code>>9)&0x30) (r2)
+	ldr		r5, =(HighCol+48)
+	lsl		r8, r8, #17
+	lsr		r8, r8, #17
 .iniwhileds:
 	cmp		r4, #0
-	beq		.endif3ds			@go to end
+	beq		.endwhileds
 	cmp		r7, #0
-	bgt		.endif4ds
-	b		.endwhileds
-.endif4ds:
+	ble		.nextwhileds
 	cmp		r7, #328
-	blt		.endif5ds
-	b		.endif3ds			@go to end if greater or equal
-.endif5ds:
-	lsl		r8, r8, #17
-	lsl		r8, r8, #17
-	ldr		r5, =HighCol
-	mov		r0, r7
-	add		r0, r0, #24
- 	lsl		r0, r0, #1
+	bge		.endwhileds
+	mov		r0, r7, lsl #1
 	add		r0, r0, r5
 	mov		r1, r8
-	ands 	r3, r6, #0x0800 
-	beq		.normds
-	bl      TileFlip
-	b		.endwhileds
-.normds:
-	bl      TileNorm
-.endwhileds:					@update vars
+	tst 	r6, #0x0800 
+	blne	TileFlip
+	bleq	TileNorm
+.nextwhileds:					@update vars
 	sub		r4, r4, #1
 	add		r7, r7, #8
 	add		r8, r8, r9
 	b		.iniwhileds
-.endif3ds:
-	ldmfd   sp!, {r1-r9,r12}
-    bx      r12
+.endwhileds:
+	ldmfd   sp!, {r4-r9,pc}
 
 @-----------------------------------------------------------------------------------------------------
 .global DrawAllSprites2		@ int *hcache (r0), int maxwidth (r1) [BROKEN???]
@@ -374,7 +358,7 @@ DrawAllSprites2:
 	ldr		r1, =(Pico+0x10000)	@ r1 = Pico.vram
 	add		r0, r1, r0			@ r0 = Pico.vram + offset[((table+(spin[i]<<2))&0x7ffc)];
 	sub		r1, fp, #4			@ r1 = **hcache
-	bl		DrawSprite2
+	bl		DrawSprite
 	sub		r4, r4, #1 
 	b 		.iniwhile2das
 .endwhile2das:

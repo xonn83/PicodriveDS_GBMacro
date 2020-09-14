@@ -73,7 +73,6 @@ extern "C" void UpdatePalette();
 void UpdatePalette()
 {
   for (int c=0;c<64;c++) cram_high[c]=(unsigned short)PicoCram(Pico.cram[c]);
-  Pico.m.dirtyPal=0;
 }
 */
 #endif
@@ -757,7 +756,7 @@ static int EmulateScanBG3(unsigned int scan,unsigned short *sdata)
 		sdata[i] = PicoCram(((u16*)sdata)[i]);
 	}
 	*/
-	dmaCopyWords(3,sdata,BG_GFX+(512*scan),639);
+	dmaCopyWords(3,sdata,BG_GFX+(512*scan),640);
 	// memcpy(BG_GFX+(512*scan),sdata,320);
 	// dmaCopy(sdata,VRAM_A_MAIN_BG_0x6000000+(512*scan),320*2);
 	/*
@@ -860,7 +859,7 @@ void EmulateFrame()
 		}
 		
 		PicoSkipFrame = 0;
-		DrawFrame();
+		DoFrame();
 		FPS++;
 	}
 	return;
@@ -1287,6 +1286,7 @@ int main(int argc, char **argv)
 #ifdef SW_SCAN_RENDERER
 	REG_BG3CNT = BG_BMP16_512x256;
 	PicoCramHigh = cram_high;
+	PicoScan=EmulateScanBG3; // Setup scanline callback
 #endif
 
 #ifdef HW_FRAME_RENDERER
@@ -1345,8 +1345,6 @@ int main(int argc, char **argv)
 	consoleDemoInit();
 
 	fifoSendValue32(FIFO_PM, PM_REQ_SLEEP_DISABLE);		// Disable sleep mode to prevent crashes
-
-	// lcdSwap();
 
 	// SoundInit();
 
@@ -1436,10 +1434,12 @@ int main(int argc, char **argv)
 		}
 		if(choosingfile) {
 			lcdSwap();	//Mod for GBMacro
+#ifdef ARM9_SOUND
 			if (!soundPaused) {
 				snd().stopStream();
 				mmEffectCancelAll();
 			}
+#endif
 			ConvertToGrayscale();
 			for (int i = 0; i < 30; i++) swiWaitForVBlank();
 			if(EmulateExit()) {
@@ -1447,7 +1447,9 @@ int main(int argc, char **argv)
 			}
 			else {
 				consoleClear();
+#ifdef ARM9_SOUND				
 				if (!soundPaused) snd().beginStream();
+#endif
 			}
 			choosingfile = 0;
 			lcdSwap();	//Mod for GBMacro
