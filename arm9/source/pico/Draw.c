@@ -392,8 +392,8 @@ static void DrawSprite(unsigned int *sprite,int **hc)
 */
 #endif
 
-//int DrawAllSprites(int *hcache, int maxwidth);
-
+int DrawAllSprites(int *hcache, int maxwidth);
+/*
 static int DrawAllSprites(int *hcache, int maxwidth)
 {
   struct PicoVideo *pvid=&Pico.video;
@@ -406,8 +406,7 @@ static int DrawAllSprites(int *hcache, int maxwidth)
   if (pvid->reg[12]&1) table&=0x7e; // Lowest bit 0 in 40-cell mode
   table<<=8; // Get sprite table address/2
 
-  for (i=u=0; u < 80 && i < 21; u++)
-  {
+	for (i=u=0; u < 80; u++){
     unsigned int *sprite=NULL;
     int code, sx, sy, height;
 
@@ -423,16 +422,18 @@ static int DrawAllSprites(int *hcache, int maxwidth)
 
     // masking sprite?
 	sx = (sprite[1]>>16)&0x1ff;
-	if(!sx) {
-      if(!(rendstatus&1) || (!(rendstatus&1) && sx1seen)) {
+	
+	if(sx==0) {
+		if(rendstatus==0) {
         i--; break; // this sprite is not drawn and remaining sprites are masked
 	  }
 	}
-    else if(sx == 1) { rendstatus |= 1; sx1seen = 1; } // masking mode2 (Outrun, Galaxy Force II)
+    //else if(sx == 1) { rendstatus |= 1; sx1seen = 1; } // masking mode2 (Outrun, Galaxy Force II)
+	else if(sx == 1) rendstatus = 1; // masking mode2 (Outrun, Galaxy Force II)
 
     // check if sprite is not hidden offscreen
 	sx -= 0x78; // Get X coordinate + 8
-	if(sx <= -8*3 || sx >= maxwidth) goto nextsprite;
+	if(sx <= -24 || sx >= maxwidth) goto nextsprite;
 
 	// sprite is good, save it's index
 	spin[i++]=(unsigned char)link;
@@ -457,7 +458,7 @@ static int DrawAllSprites(int *hcache, int maxwidth)
 
   return 0;
 }
-
+*/
 #ifndef _ASM_DRAW_C
 //void DrawSpritesFromCache(int *hc);
 

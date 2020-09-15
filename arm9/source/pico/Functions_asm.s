@@ -163,9 +163,9 @@ UpdatePalette:
     bx      lr
 
 @-----------------------------------------------------------------------------------------------------
-.global DrawSprite			@unsigned int *sprite (r0), int **hc (r1)	[BROKEN??]
+.global DrawSprite			@unsigned int *sprite (r0), int **hc (r1)
 DrawSprite:
-	stmfd   sp!, {r4-r9,lr}
+	stmfd   sp!, {r1-r9,lr}
 	ldr		r2, [r0]			@sy = sprite[0] (r2)
 	lsr		r3, r2, #24			@height = sy>>24 (r3)
 	lsl		r2, r2, #23
@@ -259,62 +259,60 @@ DrawSprite:
 	add		r8, r8, r9
 	b		.iniwhileds
 .endwhileds:
-	ldmfd   sp!, {r4-r9,pc}
+	ldmfd   sp!, {r1-r9,pc}
 
 @-----------------------------------------------------------------------------------------------------
-.global DrawAllSprites2		@ int *hcache (r0), int maxwidth (r1) [BROKEN???]
-DrawAllSprites2:
-	stmfd   sp!, {r1-r10,lr}
+.global DrawAllSprites		@ int *hcache (r0), int maxwidth (r1)
+DrawAllSprites:
+	stmfd   sp!, {r4-r10,lr}
 	str     fp, [sp, #-4]!
     mov     fp, sp
     sub     sp, sp, #88
-	str		r0, [fp, #-4]		@we save *hcache on stack, offset -4 [r0 is free]
-	str		r1, [fp, #-8]		@we save maxwitdth on stack offset -8 [r1 is free]
-	mov		r2, #0				@link = 0 (r2)
-	ldr		r3, =(Pico+0x22249)	@pico.video.reg[5]
+	str		r0, [fp, #-4]			@we save *hcache on stack, offset -4 [r0 is free]
+	str		r1, [fp, #-8]			@we save maxwitdth on stack offset -8 [r1 is free]
+	mov		r2, #0					@link = 0 (r2)
+	ldr		r4, =(Pico+0x22244)
+	add		r3, r4, #5
 	ldrb	r3, [r3]
-	and		r3, r3, #0x7F		@table=Pico.video.reg[5]&0x7f (r3)
-	ldr		r4, =(Pico+0x22256)	@pico.video.reg[12]
+	and		r3, r3, #0x7F			@table=Pico.video.reg[5]&0x7f (r3)
+	add		r4, r4, #12
 	ldrb	r4, [r4]
 	ands	r4, r4, #1
-	beq		.endif1das
-	and		r3, r3, #0x7E
-.endif1das:
+	andne	r3, r3, #0x7E
 	lsl		r3, r3, #8
-	mov		r4, #0				@i = 0 (r4)
 	mov		r5, #0 				@u = 0 (r5)
+	mov 	r4, #0				@i = 0 (r4)
+	ldr		r10, =(Scanline)
+	ldr		r10, [r10]			@r10 = Scanline
+	
 .iniwhile1das:
 	cmp		r5, #80				@condition1 (u < 80)
-	cmpne	r4, #21				@condition2	(i < 21)
 	beq		.endwhile1das
 	lsl		r6, r2, #2 			@ r6 = link << 2
 	add		r6, r6, r3			@ r6 = table + (link<<2)
-	ldr		r0, =0x7FFC			@ Need improvement
+	ldr		r0, =0x7FFC
 	and		r6, r6, r0			@ r6 = (table + (link<<2)) & 0x7FFC
 	lsl		r6, r6, #1			@ r6 = 0x(r6)0
 	ldr		r7, =(Pico+0x10000)	@ r7 = Pico.vram
 	add		r6, r6, r7			@ sprite=Pico.vram + offset[((table+(link<<2))&0x7ffc)] (r6)
 	ldr		r7, [r6]			@ code=sprite[0] (r7)
-	lsl     r8, r7, #23
-    lsr     r8, r8, #23
+	lsl		r8, r7, #23
+	lsr		r8, r8, #23
 	sub		r8, r8, #0x80		@sy = (code&0x1ff)-0x80 (r8)
 	lsr		r9, r7, #24
 	and		r9, r9, #3
 	add		r9, r9, #1
-	lsl		r9, r9, #3			@height = (((code>>24)&3)+1)<<3 (r9)
-	ldr		r10, =(Scanline)
-	ldr		r10, [r10]
+	lsl		r9, r9, #3			@height = (((code>>24)&3)+1)<<3 (r9)	
 	cmp		r10, r8
 	blt		.nextspritedas
-	sub		r10, r10, r9		@ [r9 is free]
-	cmp		r10, r8
+	sub		r0, r10, r9			@ [r9 is free]
+	cmp		r0, r8
 	bge		.nextspritedas
 	ldr		r9, [r6, #4]
-	lsr		r9, r9, #16 
-	lsl     r9, r9, #23
-    lsrs    r9, r9, #23
+	lsl		r9, r9, #7
+	lsrs	r9, r9, #23			@sx = (sprite[1]>>16)&0x1ff (r9)
 	bne		.else2das
-	ldr		r0, =(rendstatus)
+	ldr		r0, =rendstatus
 	ldr		r0, [r0]
 	cmp		r0, #0
 	bne		.endif3das
@@ -324,51 +322,50 @@ DrawAllSprites2:
 	cmp		r9, #1
 	bne		.endif3das
 	mov		r1, #1
-	ldr		r0, =(rendstatus)
+	ldr		r0, =rendstatus
 	ldr		r1, [r0]
 .endif3das:
-	sub		r9, r9,  #0x78
+	sub		r9, r9, #0x78
 	cmn		r9, #23
 	blt		.nextspritedas
 	ldr		r1, [fp, #-8]		@load maxwidth from stack
 	cmp		r9, r1
 	bge		.nextspritedas	
-	add		r0, sp, r4			@r0 = spin[i]
-	strb	r2, [r0]
+	strb	r2, [sp, r4]		@save to spin[i]
 	add		r4, r4, #1
 .nextspritedas:
 	lsr		r2, r7, #16
-	and		r2, r2, #0x7F
-	cmp		r2, #0
+	ands	r2, r2, #0x7F
 	beq		.endwhile1das
 	add		r5, r5, #1
 	b		.iniwhile1das
 .endwhile1das:
+
 	sub		r4, r4, #1 
+	ldr		r5, =(Pico+0x10000)	@ r5 = Pico.vram
+	ldr		r6, =0x7FFC
+	
 .iniwhile2das:
 	cmp		r4, #0
 	blt		.endwhile2das
-	add		r0, sp, r4			@ r0 = &spin[i]
-	ldrb	r0, [r0]			@ r0 = spin[i]
+	ldrb	r0, [sp, r4]		@ r0 = spin[i]
 	lsl		r0, r0, #2 			@ r0 = spin[i] << 2
 	add		r0, r0, r3 			@ r0 = table + (spin[i]<<2)
-	ldr		r1, =0x7FFC
-	and		r0, r0, r1			@ r0 = (table + (spin[i]<<2)) & 0x7ffc
-	lsl		r0, r0, #1			@ 0x(r0)0
-	ldr		r1, =(Pico+0x10000)	@ r1 = Pico.vram
-	add		r0, r1, r0			@ r0 = Pico.vram + offset[((table+(spin[i]<<2))&0x7ffc)];
+	and		r0, r0, r6			@ r0 = (table + (spin[i]<<2)) & 0x7ffc
+	lsl		r0, r0, #1			@ offset
+	add		r0, r5, r0			@ r0 = Pico.vram + offset[((table+(spin[i]<<2))&0x7ffc)];
 	sub		r1, fp, #4			@ r1 = **hcache
 	bl		DrawSprite
 	sub		r4, r4, #1 
 	b 		.iniwhile2das
 .endwhile2das:
+
 	ldr		r1, [fp, #-4]		@r1 = *hcache
 	mov		r0, #0
 	str		r0, [r1]
 	mov     sp, fp
     ldr     fp, [sp], #4
-	ldmfd   sp!, {r1-r10,r12}
-    bx      r12
+	ldmfd   sp!, {r4-r10,pc}
 
 @-----------------------------------------------------------------------------------------------------
 .global DrawSpritesFromCache2				@ int *hc (r0)
