@@ -56,7 +56,7 @@ int dsFrameCount = 0;
 u32 pdFrameCount = 0;
 int FPS = 0;
 int frameCountForFrameSkip = 1;
-unsigned char old_vreg7 = 0;
+unsigned char palette_done = 0;
 
 //static u32 xdxval = 320;
 //static u32 ydyval = 300;
@@ -861,6 +861,10 @@ void EmulateFrame()
 		PicoSkipFrame = 0;
 		DoFrame();
 		FPS++;
+	}else{
+		//Let's take advantage of the extra frames
+		UpdatePalette();
+		palette_done = 1;
 	}
 	return;
 }
@@ -884,9 +888,11 @@ void processvblank()
 			iprintf("\x1b[19;0HFPS: %i     \n",FPS);
 			FPS = 0;
 			dsFrameCount = 0;
-			UpdatePalette();
+			if (palette_done) palette_done = 0;
+			else 			  UpdatePalette();
 		}else if(dsFrameCount == 15 || dsFrameCount == 30 || dsFrameCount == 45) {
-			UpdatePalette();
+			if (palette_done) palette_done = 0;
+			else 			  UpdatePalette();
 		}
 	} else {
 		if (currentWidth != width256) {

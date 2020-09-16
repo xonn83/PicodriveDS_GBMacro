@@ -28,7 +28,7 @@ static void VideoWrite(unsigned int d)
   switch (Pico.video.type)
   {
     case 1: Pico.vram [a&0x7fff]=sd; break;
-    case 3: Pico.cram [a&0x003F]=sd; Pico.m.dirtyPal++; break;
+    case 3: Pico.cram [a&0x003F]=sd; break;
     case 5: Pico.vsram[a&0x003f]=sd; break;
   }
   
@@ -137,7 +137,6 @@ static void DmaFill(int data)
     AutoIncrement();
   }
 }
-
 
 static void CommandDma()
 {

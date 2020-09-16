@@ -430,7 +430,7 @@ DrawSpritesFromCache2:
 		bx      lr 
 
 @-----------------------------------------------------------------------------------------------------
-.global DrawStrip2				@ TileStrip *ts (r0)
+.global DrawStrip2				@ TileStrip *ts (r0)		[BROKEN??]
 DrawStrip2:
 	stmfd   sp!, {r1-r10,lr}
 	mov 	r4, r0				@r4 = ts	[r0 is free]
@@ -447,8 +447,8 @@ DrawStrip2:
 	add 	r6, r6, #1 			@r6 = dx
 	ldr		r5, [r4, #20]		@r5 = cells
 	cmp		r6, #8
-	beq		.iniwhile1strip
-	add		r5, r5, #1
+	addne	r5, r5, #1
+	
 .iniwhile1strip:
 	cmp		r5, #0
 	beq		.endwhile1strip
@@ -478,10 +478,9 @@ DrawStrip2:
 	cmp		r3, r10
 	beq		.endif2strip
 	mov		r10, r3
-	ldr		r9, =0x7FF
-	and		r1, r3, r9
-	lsl		r1, r1, #4 			@r1 = addr
-	ands	r9, r3, #0x1000
+	lsl		r1, r3, #21
+	lsr		r1, r1, #17			@r1 = addr
+	tst		r3, #0x1000
 	beq		.else3strip
 	add		r1, r1, #14
 	sub		r1, r1, r7
@@ -501,10 +500,10 @@ DrawStrip2:
 	lsl		r0, r0, #1
 	add		r0, r9, r0
 	ands	r9, r3, #0x0800
-	beq		.else4strip
+	beq		.normstrip
 	bl		TileFlip
 	b 		.nextwhile1strip
-.else4strip:
+.normstrip:
 	bl		TileNorm
 .nextwhile1strip:
 	add		r6, r6, #8
@@ -512,11 +511,11 @@ DrawStrip2:
 	sub		r5, r5, #1
 	b		.iniwhile1strip
 .endwhile1strip:
+
 	mov		r1, #0
 	ldr		r0, [r4, #16]
 	str		r1, [r0]			@*ts->hc = 0
-	ldmfd   sp!, {r1-r10,lr}
-	bx      lr 
+	ldmfd   sp!, {r1-r10,pc}
 
 @-----------------------------------------------------------------------------------------------------
 .global VideoRead

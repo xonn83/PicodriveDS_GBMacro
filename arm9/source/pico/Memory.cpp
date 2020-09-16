@@ -21,7 +21,6 @@
 // typedef unsigned short u16;
 // typedef unsigned int   u32;
 
-
 static __inline int PicoMemBase(u32 pc)
 {
   int membase=0;
@@ -125,33 +124,21 @@ extern "C" u32 OtherRead16(u32 a);
 static u32 OtherRead16(u32 a)
 {
   u32 d=0;
-
-  // if ((a&0xffc000)==0xa00000)
-  // {
-	// a&=0x1fff;
-	// if(!(PicoOpt&4)) {
-      // // Z80 disabled, do some faking
-	  // static int zerosent = 0;
-	  // if(a == Pico.m.z80_lastaddr) { // probably polling something
-        // d = Pico.m.z80_fakeval;
-		// if((d & 0xf) == 0xf && !zerosent) {
-		  // d = 0; zerosent = 1;
-        // } else {
-		  // Pico.m.z80_fakeval++;
-		  // zerosent = 0;
-		// }
-        // goto end;
-	  // } else {
-        // Pico.m.z80_fakeval = 0;
-	  // }
-	  // Pico.m.z80_lastaddr = (u16) a;
-	// }
-
-    // // Z80 ram (not byteswaped)
-    // d=(Pico.zram[a]<<8)|Pico.zram[a+1];
-    // goto end;
-  // }
-
+  if ((a&0xffc000)==0xa00000){
+	a&=0x1fff;
+	if(!(PicoOpt&4)) {
+      // Z80 disabled, do some faking
+	  if(a == Pico.m.z80_lastaddr) { // probably polling something
+		d = Pico.m.z80_fakeval++;
+        goto end;
+	  }
+      Pico.m.z80_fakeval = 0;
+	  Pico.m.z80_lastaddr = (u16) a;
+	}
+    // Z80 ram (not byteswaped)
+    d=(Pico.zram[a]<<8)|Pico.zram[a+1];	
+    goto end;
+  }
   if ((a&0xfffffc)==0xa04000) { 
 #ifdef ARM9_SOUND
 	  if(PicoOpt&1) 
@@ -179,7 +166,6 @@ end:
   return d;
 }
 */
-
 static void OtherWrite8(u32 a,u32 d)
 {
   if (a==0xc00011||a==0xa07F11){ 
@@ -360,7 +346,6 @@ static u8 CPU_CALL PicoRead8(u32 a)
   return (u8)d;
 }
 */
-
 extern "C" u16 CPU_CALL PicoRead16(u32 a);
 /*
 u16 CPU_CALL PicoRead16(u32 a)

@@ -92,7 +92,41 @@ PadRead:
 @---------------------------------------------------------------------------
 .global OtherRead16						@ unsigned int a (r0)
 OtherRead16:
-	stmfd   sp!, {r1-r3,lr}
+	stmfd   sp!, {r1-r4,lr}
+	ldr		r3, =0xffc000
+	and		r3, r3, r0
+	cmp		r3, #0xa00000
+	bne		.endif1or16
+	lsl		r0, r0, #19
+	lsr		r0, r0, #19
+	ldr		r3, =PicoOpt
+	ldr		r3, [r3]
+	ands	r3, r3, #4
+	bne		.endif2or16
+	ldr		r3, =(Pico+0x22214)			@r3 = &pico.m.z80_lastaddr
+	ldrh	r2, [r3]					@r2 = pico.m.z80_lastaddr
+	cmp		r0, r2
+	bne		.endif3or16
+	ldr		r1, =(Pico+0x22216)			@r1 = &Pico.m.z80_fakeval
+	ldrh	r0, [r1]					@r0 = Pico.m.z80_fakeval
+	add		r0, r0, #1
+	strh	r0, [r1]
+	sub		r0, r0, #1
+	b		.endor16
+.endif3or16:
+	ldr		r1, =(Pico+0x22216)			@r1 = &Pico.m.z80_fakeval
+	mov		r4, #0
+	strh	r4, [r1]
+	strh 	r0, [r3]
+.endif2or16:
+	ldr		r1, =(Pico+0x20000)			@r1 = Pico.zram
+	add		r2, r1, r0
+	ldrb	r3, [r2]
+	add		r2, r2, #1
+	ldrb	r2, [r2]
+	orr		r0, r2, r3, lsl #8			@r0 = (Pico.zram[a]<<8)|Pico.zram[a+1]
+	b		.endor16
+.endif1or16:
 	bic     r3, r0, #-16777216
     bic     r3, r3, #3
 	mov		r1, #0xA0000
@@ -165,7 +199,7 @@ OtherRead16:
 .endif7or16:
 	mov		r0, #0						@default return value (r0 = 0)
 .endor16:
-	ldmfd   sp!, {r1-r3,pc}
+	ldmfd   sp!, {r1-r4,pc}
 
 @---------------------------------------------------------------------------
 .global PicoRead8			@unsigned int a (r0)
@@ -212,78 +246,7 @@ PicoRead8:
 .endif3pr8:
 	mov		r4, r0						@backup of variable a
 	bic     r0, r0, #1					@Now a is temporarly changed
-	bic     r3, r0, #-16777216			@--------------------------------------Start of OtherRead16
-    bic     r3, r3, #3
-	mov		r1, #0xA0000
-	orr		r1, r1, #0x400
-	cmp		r3, r1
-	bne 	.endif4pr8
-	ldr		r1, =(Pico+0x22208)
-	ldrb	r2, [r1]
-	and		r0, r2, #3 					@r0 = Pico.m.rotate&3
-	add		r2, r2, #1
-	strb 	r2, [r1]
-	b 		.endpr8b
-.endif4pr8:
-	bic     r1, r0, #-16777216
-    bic     r1, r1, #31
-	cmp		r1, #0xA10000
-	bne		.endif5pr8
-	lsr     r0, r0, #1
-    and     r0, r0, #0xF
-	cmp		r0, #0
-	beq		.case0pr8
-	cmp 	r0, #1
-	beq		.case1pr8
-	cmp		r0, #2
-	beq		.case2pr8
-	ldr		r2, =(Pico+0x22000)
-	add		r0, r2, r0
-	ldrb	r0, [r0]					@r0 = Pico.ioports[aa]
-	orr		r0, r0, lsr #8
-	b 		.endpr8b
-.case0pr8:
-	ldr		r2, =(Pico+0x2220F)			
-	ldrb	r0, [r2]					@r0 = Pico.m.hardware
-	orr		r0, r0, lsr #8
-	b		.endpr8b
-.case1pr8:
-	mov		r0, #0
-	bl		PadRead
-	ldr		r1, =(Pico+0x22000)
-	ldrb	r1, [r1, #1]
-	and		r1, r1, #0x80
-	orr		r0, r0, r1 					@r0 = PadRead(0)|Pico.ioports[1]&0x80
-	orr		r0, r0, lsr #8
-	b		.endpr8b
-.case2pr8:
-	mov		r0, #1
-	bl		PadRead
-	ldr		r1, =(Pico+0x22000)
-	ldrb	r1, [r1, #2]
-	and		r1, r1, #0x80
-	orr		r0, r0, r1 					@r0 = PadRead(1)|Pico.ioports[2]&0x80
-	orr		r0, r0, lsr #8
-	b		.endpr8b
-.endif5pr8:
-	ldr		r2, =0xA11100				@Needs to be improved
-	cmp		r0, r2
-	bne		.endif6pr8
-	ldr		r1, =(Pico+0x22209)
-	ldrb	r0, [r1]
-	lsl		r0, r0, #8					@r0 = Pico.m.z80Run << 8
-	b		.endpr8b
-.endif6pr8:
-	bic     r1, r0, #-16777216
-    bic     r1, r1, #31
-	cmp 	r1, #0xC00000
-	bne		.endif7pr8
-	bl		PicoVideoRead				@r0 = PicoVideoRead(a)
-	orr		r0, r0, lsr #8
-	b		.endpr8b
-.endif7pr8:
-	mov		r0, #0						@default return value (r0 = 0)
-.endpr8b:								@--------------------------------------End of OtherRead16	
+	bl		OtherRead16	
 	ands	r1, r4, #1
 	lsreq 	r0, r0, #8
 .endpr8:
@@ -332,78 +295,7 @@ PicoRead16:
 	ldrh	r0, [r0]					@r0 = Pico.rom+a
 	b 		.endpr16
 .endif3pr16:
-	bic     r3, r0, #-16777216			@--------------------------------------Start of OtherRead16
-    bic     r3, r3, #3
-	mov		r1, #0xA0000
-	orr		r1, r1, #0x400
-	cmp		r3, r1
-	bne 	.endif4pr16
-	ldr		r1, =(Pico+0x22208)
-	ldrb	r2, [r1]
-	and		r0, r2, #3 					@r0 = Pico.m.rotate&3
-	add		r2, r2, #1
-	strb 	r2, [r1]
-	b 		.endpr16
-.endif4pr16:
-	bic     r1, r0, #-16777216
-    bic     r1, r1, #31
-	cmp		r1, #0xA10000
-	bne		.endif5pr16
-	lsr     r0, r0, #1
-    and     r0, r0, #0xF
-	cmp		r0, #0
-	beq		.case0pr16
-	cmp 	r0, #1
-	beq		.case1pr16
-	cmp		r0, #2
-	beq		.case2pr16
-	ldr		r2, =(Pico+0x22000)
-	add		r0, r2, r0
-	ldrb	r0, [r0]					@r0 = Pico.ioports[a]
-	orr		r0, r0, lsr #8
-	b 		.endpr16
-.case0pr16:
-	ldr		r2, =(Pico+0x2220F)			
-	ldrb	r0, [r2]					@r0 = Pico.m.hardware
-	orr		r0, r0, lsr #8
-	b		.endpr16
-.case1pr16:
-	mov		r0, #0
-	bl		PadRead
-	ldr		r1, =(Pico+0x22000)
-	ldrb	r1, [r1, #1]
-	and		r1, r1, #0x80
-	orr		r0, r0, r1 					@r0 = PadRead(0)|Pico.ioports[1]&0x80
-	orr		r0, r0, lsr #8
-	b		.endpr16
-.case2pr16:
-	mov		r0, #1
-	bl		PadRead
-	ldr		r1, =(Pico+0x22000)
-	ldrb	r1, [r1, #2]
-	and		r1, r1, #0x80
-	orr		r0, r0, r1 					@r0 = PadRead(1)|Pico.ioports[2]&0x80
-	orr		r0, r0, lsr #8
-	b		.endpr16
-.endif5pr16:
-	ldr		r2, =0xA11100				@Needs to be improved
-	cmp		r0, r2
-	bne		.endif6pr16
-	ldr		r1, =(Pico+0x22209)
-	ldrb	r0, [r1]
-	lsl		r0, r0, #8					@r0 = Pico.m.z80Run << 8
-	b		.endpr16
-.endif6pr16:
-	bic     r1, r0, #-16777216
-    bic     r1, r1, #31
-	cmp 	r1, #0xC00000
-	bne		.endif7pr16
-	bl		PicoVideoRead				@r0 = PicoVideoRead(a)
-	orr		r0, r0, lsr #8
-	b		.endpr16
-.endif7pr16:
-	mov		r0, #0						@default return value (r0 = 0)
-										@--------------------------------------End of OtherRead16	
+	bl 		OtherRead16
 .endpr16:
 	lsl		r0, r0, #16
 	lsr		r0, r0, #16
