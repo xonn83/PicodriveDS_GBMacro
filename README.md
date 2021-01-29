@@ -1,4 +1,4 @@
 # PicoDriveTWL (GBMacro edition)
 
-SEGA Genesis emulator for the Nintendo DSi to be used only in lower screen. Only can be launched using TWL in a DSi.
-ROM path is /roms/md by default. If it hasn't been created, file explorer starts in root (/)
+SEGA Genesis emulator for the Nintendo DS(i) to play using only lower screen.
+ROM path is /roms/md by default, but if it hasn't been created, file explorer starts in root (/)
